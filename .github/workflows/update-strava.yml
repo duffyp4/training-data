@@ -1,0 +1,45 @@
+name: Nightly Strava Sync
+on:
+  schedule:
+    - cron: '0 5 * * *' # Runs at 5 AM UTC daily
+  workflow_dispatch:
+    inputs:
+      activity_url:
+        description: 'Optional: A specific Strava activity URL to refresh (e.g., https://www.strava.com/activities/12345)'
+        required: false
+        type: string
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      BB_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
+      BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID }}
+      STRAVA_CONTEXT_ID: ${{ secrets.STRAVA_CONTEXT_ID }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Strava Scraper
+        run: npm run scrape -- ${{ github.event.inputs.activity_url || '' }}
+
+      - name: Run Feed Renderer
+        run: npm run render
+
+      - name: Commit and push changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "auto: $(date +'%Y-%m-%d') Strava sync"
+          add: "index.md data/last_id.json"
+          # This ensures the action can push to the repository
+          default_author: github_actions 

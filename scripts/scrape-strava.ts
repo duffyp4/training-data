@@ -1,0 +1,228 @@
+import { Stagehand } from "@browserbasehq/stagehand";
+import { z } from "zod";
+import StagehandConfig from "../stagehand.config.js";
+import fs from "fs/promises";
+
+// Define the Zod schemas for validation, based on the PRD.
+const ActivitySchema = z.object({
+  activityId: z.string(),
+  sport: z.string().optional(),
+  date: z.string().optional(),
+  workoutName: z.string().optional(),
+  duration: z.string().optional(),
+  distance: z.string().optional(),
+  elevation: z.string().optional(),
+  relativeEffort: z.string().optional(),
+  calories: z.string().optional(),
+  averageHeartRate: z.string().optional(),
+  maxHr: z.string().optional(),
+  weather: z.object({
+    description: z.string().optional(),
+    temperature: z.string().optional(),
+    humidity: z.string().optional(),
+    feelsLike: z.string().optional(),
+    windSpeed: z.string().optional(),
+    windDirection: z.string().optional(),
+  }).optional(),
+  laps: z.array(z.object({
+    lapNumber: z.number().optional(),
+    distance: z.string().optional(),
+    time: z.string().optional(),
+    pace: z.string().optional(),
+    gap: z.string().optional(),
+    elevation: z.string().optional(),
+    heartRate: z.string().optional(),
+  })).optional(),
+});
+
+export type Activity = z.infer<typeof ActivitySchema>;
+
+const AllActivitiesSchema = z.object({
+  activities: z.array(ActivitySchema),
+});
+
+// Function to read the last processed ID
+async function getLastId(): Promise<string | null> {
+  try {
+    const data = await fs.readFile('data/last_id.json', 'utf-8');
+    const json = JSON.parse(data);
+    return json.last_id || null;
+  } catch (error) {
+    // If the file doesn't exist or is invalid, return null
+    console.warn("Could not read last_id.json. Assuming no previous runs.");
+    return null;
+  }
+}
+
+async function scrapeStrava(activityUrlInput?: string) {
+  let stagehand: Stagehand | null = null;
+  console.log("Starting Strava scrape...");
+
+  try {
+    stagehand = new Stagehand(StagehandConfig);
+    await stagehand.init();
+    const page = stagehand.page;
+    if (!page) throw new Error("Failed to get page from Stagehand.");
+
+    let activities: Activity[] = [];
+
+    if (activityUrlInput) {
+      console.log(`Manual refresh requested for: ${activityUrlInput}`);
+      const activityIdMatch = activityUrlInput.match(/activities\/(\d+)/);
+      if (!activityIdMatch || !activityIdMatch[1]) {
+        throw new Error(`Invalid Strava activity URL provided: ${activityUrlInput}`);
+      }
+      const activityId = activityIdMatch[1];
+      activities.push({ activityId });
+      console.log(`Processing single activity ID: ${activityId}`);
+    } else {
+      console.log("Navigating to Strava training page for nightly scrape...");
+      await page.goto("https://www.strava.com/athlete/training");
+      
+      // Crucial login check
+      const isLoggedIn = await page.evaluate(() => document.querySelector('table.training-log-table') !== null);
+      if (!isLoggedIn) {
+        throw new Error("Authentication Error: Strava session is invalid or expired. Please manually log in via the Browserbase dashboard to refresh the session.");
+      }
+      console.log("Successfully logged in.");
+
+      const lastId = await getLastId();
+      console.log(`Last processed activity ID: ${lastId}`);
+
+      // This is the prompt that was used in the original director.ai script
+      const extractionInstruction = "extract basic information for all activities shown on this page including the sport type, date, workout name, duration, distance, elevation, and relative effort. Also extract the URL for the workout name link.";
+
+      console.log("Extracting basic activity data from training log...");
+      const extractedData = await page.extract({
+        instruction: extractionInstruction,
+        schema: z.object({
+          activities: z.array(z.object({
+              sport: z.string().optional(),
+              date: z.string().optional(),
+              workoutName: z.string().optional(),
+              duration: z.string().optional(),
+              distance: z.string().optional(),
+              elevation: z.string().optional(),
+              relativeEffort: z.string().optional(),
+              workoutUrl: z.string().url().optional(),
+          })),
+        }),
+      });
+
+      if (!extractedData.activities) {
+          throw new Error("Could not extract activities from training page.");
+      }
+      
+      console.log(`Found ${extractedData.activities.length} activities on the page.`);
+
+      for (const item of extractedData.activities) {
+          const activityIdMatch = item.workoutUrl?.match(/activities\/(\d+)/);
+          if (activityIdMatch && activityIdMatch[1]) {
+              const currentActivityId = activityIdMatch[1];
+              
+              if (currentActivityId === lastId) {
+                  console.log(`Found last processed activity (${lastId}). Stopping scrape.`);
+                  break;
+              }
+
+              activities.push({
+                  activityId: currentActivityId,
+                  ...item,
+              });
+          }
+      }
+    }
+
+    if (activities.length === 0) {
+        console.log("No new activities to process.");
+        await fs.writeFile('activities.json', JSON.stringify([], null, 2));
+    } else {
+        console.log(`Found ${activities.length} new activities to process. Fetching details...`);
+
+        // Reverse the array to process from oldest to newest, which is more intuitive.
+        const reversedActivities = activities.reverse();
+
+        for (let i = 0; i < reversedActivities.length; i++) {
+            const activity = reversedActivities[i];
+            console.log(`[${i+1}/${reversedActivities.length}] Fetching details for activity: ${activity.activityId}`);
+            
+            const activityUrl = `https://www.strava.com/activities/${activity.activityId}`;
+            await page.goto(activityUrl);
+
+            // Extract detailed info: weather, calories, HR, etc.
+            const detailedInfo = await page.extract({
+                instruction: "extract detailed information from this activity page including weather data (temperature, humidity, feels like, wind speed, wind direction), pace, calories, and any other performance metrics visible",
+                schema: z.object({
+                    weather: z.object({
+                        description: z.string().optional(),
+                        temperature: z.string().optional(),
+                        humidity: z.string().optional(),
+                        feelsLike: z.string().optional(),
+                        windSpeed: z.string().optional(),
+                        windDirection: z.string().optional(),
+                    }).optional(),
+                    pace: z.string().optional(),
+                    calories: z.string().optional(),
+                    averageHeartRate: z.string().optional(),
+                    maxHr: z.string().optional(), // Added maxHr
+                })
+            });
+
+            // Merge detailed info
+            activity.calories = detailedInfo.calories;
+            activity.averageHeartRate = detailedInfo.averageHeartRate;
+            activity.maxHr = detailedInfo.maxHr;
+            activity.weather = detailedInfo.weather;
+            
+            // Go to laps tab and extract lap data
+            try {
+                await page.act({
+                    description: "click the Laps tab",
+                    method: "click",
+                    selector: "xpath=//a[contains(text(), 'Laps')]" // More resilient selector
+                });
+
+                const lapData = await page.extract({
+                    instruction: "extract all lap data from the table including lap number, distance, time, pace, GAP, elevation, and heart rate for each lap",
+                    schema: z.object({
+                        laps: z.array(z.object({
+                            lapNumber: z.number().optional(),
+                            distance: z.string().optional(),
+                            time: z.string().optional(),
+                            pace: z.string().optional(),
+                            gap: z.string().optional(),
+                            elevation: z.string().optional(),
+                            heartRate: z.string().optional(),
+                        })).optional(),
+                    })
+                });
+                activity.laps = lapData.laps;
+                console.log(` -> Found ${lapData.laps?.length || 0} laps.`);
+            } catch (e) {
+                console.warn(` -> Could not find or extract lap data for activity ${activity.activityId}. Skipping.`);
+            }
+        }
+        
+        // Write the fully enriched data to the file
+        await fs.writeFile('activities.json', JSON.stringify(reversedActivities, null, 2));
+        console.log(`Successfully wrote ${reversedActivities.length} enriched activities to activities.json`);
+    }
+
+    console.log("Workflow completed successfully");
+  } catch (error) {
+    console.error("Workflow failed:", error);
+    process.exit(1);
+  } finally {
+    if (stagehand) {
+      console.log("Closing Stagehand connection.");
+      await stagehand.close();
+    }
+  }
+}
+
+// Entry point to run the script
+const activityUrl = process.argv[2]; // Get the URL from the command line
+scrapeStrava(activityUrl).then(() => {
+  console.log("Scrape script finished.");
+  process.exit(0);
+}); 
