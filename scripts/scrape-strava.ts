@@ -127,7 +127,7 @@ async function scrapeStrava(activityUrlInput?: string) {
       
       try {
         console.log("Waiting for the training log table to appear...");
-        await page.waitForSelector("table.training-log-table", { timeout: 30000 }); // Wait for 30 seconds
+        await page.waitForSelector("table.activities", { timeout: 30000 }); // Wait for 30 seconds
         console.log("Training log table found. Proceeding with scrape.");
       } catch (e) {
         throw new Error("Authentication failed. Waited for 30 seconds, but could not find the training log table. Please check credentials or website structure.");
