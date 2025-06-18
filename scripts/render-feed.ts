@@ -40,7 +40,24 @@ async function updateLastId(newestId: string) {
  */
 function toMarkdown(act: Activity): string {
   // Dates need to be parsed to be re-formatted into ISO strings
-  const startTime = act.date ? new Date(act.date).toISOString() : '';
+  let startTime = '';
+  if (act.date) {
+    try {
+      // Try parsing the date directly first
+      let parsedDate = new Date(act.date);
+      // If that fails (Invalid Date), try some common formats
+      if (isNaN(parsedDate.getTime())) {
+        // Handle format like "December 30, 2024 at 6:40 AM"
+        const dateStr = act.date.replace(' at ', ' ');
+        parsedDate = new Date(dateStr);
+      }
+      startTime = isNaN(parsedDate.getTime()) ? '' : parsedDate.toISOString();
+    } catch (e) {
+      console.warn(`Could not parse date '${act.date}'. Using empty string.`);
+      startTime = '';
+    }
+  }
+  
   // A simple way to calculate endTime is to add duration to startTime
   // This is a simplification and might need a more robust solution
   let endTime = '';
@@ -64,6 +81,7 @@ function toMarkdown(act: Activity): string {
     "distance": act.distance || '',
     "duration": act.duration || '',
     "elevationGain": act.elevation || '',
+    "pace": act.pace || '',
     "calories": act.calories || '',
     "averageHeartRate": act.averageHeartRate || '',
     "weather": act.weather || {},
@@ -71,7 +89,7 @@ function toMarkdown(act: Activity): string {
   };
 
   const md = `
-### ${act.date} — ${act.workoutName} (${act.distance}, ${act.duration})
+### ${act.date} — ${act.workoutName} (${act.distance}, ${act.duration}${act.pace ? `, ${act.pace}` : ''})
 
 \`\`\`jsonld
 ${JSON.stringify(jsonLd, null, 2)}

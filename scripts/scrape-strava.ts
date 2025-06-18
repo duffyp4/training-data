@@ -16,6 +16,7 @@ const ActivitySchema = z.object({
   calories: z.string().optional(),
   averageHeartRate: z.string().optional(),
   maxHr: z.string().optional(),
+  pace: z.string().optional(),
   weather: z.object({
     description: z.string().optional(),
     temperature: z.string().optional(),
@@ -220,17 +221,22 @@ async function scrapeStrava(activityUrlInput?: string) {
             activity.averageHeartRate = detailedInfo.averageHeartRate;
             activity.maxHr = detailedInfo.maxHr;
             activity.weather = detailedInfo.weather;
+            activity.pace = detailedInfo.pace;
             
             // Go to laps tab and extract lap data
             try {
+                // This selector now tries to find a link containing "Laps" OR "Segments"
+                const lapTabSelector = "xpath=//a[contains(text(), 'Laps') or contains(text(), 'Segments')]";
+                
                 await page.act({
-                    description: "click the Laps tab",
+                    description: "click the Laps or Segments tab",
                     method: "click",
-                    selector: "xpath=//a[contains(text(), 'Laps')]" // More resilient selector
+                    selector: lapTabSelector
                 });
 
                 const lapData = await page.extract({
-                    instruction: "extract all lap data from the table including lap number, distance, time, pace, GAP, elevation, and heart rate for each lap",
+                    // The instruction is now more generic to handle all cases
+                    instruction: "extract all lap, segment, or split data from the table, including number, distance, time, pace, GAP, elevation, and heart rate for each.",
                     schema: z.object({
                         laps: z.array(z.object({
                             lapNumber: z.number().optional(),
@@ -244,9 +250,9 @@ async function scrapeStrava(activityUrlInput?: string) {
                     })
                 });
                 activity.laps = lapData.laps;
-                console.log(` -> Found ${lapData.laps?.length || 0} laps.`);
+                console.log(` -> Found ${lapData.laps?.length || 0} laps/segments.`);
             } catch (e) {
-                console.warn(` -> Could not find or extract lap data for activity ${activity.activityId}. Skipping.`);
+                console.warn(` -> Could not find or extract lap/segment data for activity ${activity.activityId}. Skipping.`);
             }
         }
         
