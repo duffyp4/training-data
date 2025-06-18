@@ -16,6 +16,8 @@ jobs:
       BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
       BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID }}
       STRAVA_CONTEXT_ID: ${{ secrets.STRAVA_CONTEXT_ID }}
+      STRAVA_EMAIL: ${{ secrets.STRAVA_EMAIL }}
+      STRAVA_PASSWORD: ${{ secrets.STRAVA_PASSWORD }}
       GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
     steps:
       - name: Checkout repository

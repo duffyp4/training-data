@@ -3,6 +3,11 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Ensure required environment variables are set
+if (!process.env.STRAVA_CONTEXT_ID || !process.env.BROWSERBASE_PROJECT_ID) {
+  throw new Error("Required environment variables (STRAVA_CONTEXT_ID, BROWSERBASE_PROJECT_ID) are not set.");
+}
+
 const StagehandConfig: ConstructorParams = {
   verbose: 1,
   domSettleTimeoutMs: 30_000,
@@ -13,14 +18,18 @@ const StagehandConfig: ConstructorParams = {
   
   // Using Browserbase environment for production runs
   env: "BROWSERBASE", 
-  browserbaseConnectionOptions: {
-    // The contextId will be loaded from environment variables
-    // This allows for persistent sessions, avoiding repeated logins
-    contextId: process.env.STRAVA_CONTEXT_ID,
-  },
   
-  // Persist the session data (cookies, local storage) for the given contextId
-  persist: true, 
+  // This is the correct way to pass parameters to the underlying Browserbase session
+  // for context persistence when using the Stagehand SDK.
+  browserbaseSessionCreateParams: {
+    projectId: process.env.BROWSERBASE_PROJECT_ID,
+    browserSettings: {
+      context: {
+        id: process.env.STRAVA_CONTEXT_ID,
+        persist: true,
+      },
+    },
+  },
 };
 
 export default StagehandConfig; 

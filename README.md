@@ -55,6 +55,17 @@ Navigate to your GitHub repository's `Settings` > `Secrets and variables` > `Act
 *   `BROWSERBASE_PROJECT_ID`: The same project ID you put in your `.env` file.
 *   `STRAVA_CONTEXT_ID`: The **Context ID** you generated in step 2.
 *   `GOOGLE_API_KEY`: A Google API key, required for the Stagehand model.
+*   `STRAVA_EMAIL`: Your Strava account email address.
+*   `STRAVA_PASSWORD`: Your Strava account password.
+
+## How It Works
+
+This system uses a dual approach to authentication for maximum reliability:
+
+1.  **Persistent Context (Primary):** The Action first attempts to use the `STRAVA_CONTEXT_ID` to resume a previous session. This is fast and avoids repeated logins.
+2.  **Direct Login (Fallback):** If the context is invalid or expired (which can happen), the script detects the Strava login page and uses your `STRAVA_EMAIL` and `STRAVA_PASSWORD` secrets to perform a direct login.
+
+This ensures that even if the session persistence fails, the script can recover and continue its work.
 
 ## Usage
 

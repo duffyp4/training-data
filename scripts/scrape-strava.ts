@@ -79,12 +79,56 @@ async function scrapeStrava(activityUrlInput?: string) {
       console.log("Navigating to Strava training page for nightly scrape...");
       await page.goto("https://www.strava.com/athlete/training");
       
-      // Crucial login check
+      // Check if we are on the training page or the login page
+      const onLoginPage = await page.evaluate(() => document.querySelector('a[href="/login"]') !== null);
+
+      if (onLoginPage) {
+        console.log("Session is not authenticated. Attempting direct login...");
+        
+        const email = process.env.STRAVA_EMAIL;
+        const password = process.env.STRAVA_PASSWORD;
+
+        if (!email || !password) {
+          throw new Error("STRAVA_EMAIL and STRAVA_PASSWORD secrets must be set for fallback login.");
+        }
+
+        await page.goto("https://www.strava.com/login");
+
+        await page.act({
+          description: "Fill in the email address",
+          selector: "#email",
+          method: "fill",
+          arguments: [email],
+        });
+        
+        await page.act({
+          description: "Fill in the password",
+          selector: "#password",
+          method: "fill",
+          arguments: [password],
+        });
+
+        await page.act({
+          description: "Click the login button",
+          selector: "#login-button",
+          method: "click",
+        });
+
+        // Wait for navigation to the dashboard, which confirms a successful login
+        await page.waitForNavigation({ url: "**/dashboard" });
+        console.log("Direct login successful. Navigating to training page.");
+        
+        // Navigate to the training page again after successful login
+        await page.goto("https://www.strava.com/athlete/training");
+
+      } else {
+        console.log("Session is already authenticated via context.");
+      }
+      
       const isLoggedIn = await page.evaluate(() => document.querySelector('table.training-log-table') !== null);
       if (!isLoggedIn) {
-        throw new Error("Authentication Error: Strava session is invalid or expired. Please manually log in via the Browserbase dashboard to refresh the session.");
+        throw new Error("Authentication failed. Even after attempting a direct login, could not access the training log. Please check your credentials and the website structure.");
       }
-      console.log("Successfully logged in.");
 
       const lastId = await getLastId();
       console.log(`Last processed activity ID: ${lastId}`);
