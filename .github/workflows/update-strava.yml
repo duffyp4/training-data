@@ -13,7 +13,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     env:
-      BB_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
+      BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
       BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID }}
       STRAVA_CONTEXT_ID: ${{ secrets.STRAVA_CONTEXT_ID }}
       GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
