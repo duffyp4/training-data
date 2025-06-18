@@ -125,9 +125,12 @@ async function scrapeStrava(activityUrlInput?: string) {
         console.log("Session is already authenticated via context.");
       }
       
-      const isLoggedIn = await page.evaluate(() => document.querySelector('table.training-log-table') !== null);
-      if (!isLoggedIn) {
-        throw new Error("Authentication failed. Even after attempting a direct login, could not access the training log. Please check your credentials and the website structure.");
+      try {
+        console.log("Waiting for the training log table to appear...");
+        await page.waitForSelector("table.training-log-table", { timeout: 30000 }); // Wait for 30 seconds
+        console.log("Training log table found. Proceeding with scrape.");
+      } catch (e) {
+        throw new Error("Authentication failed. Waited for 30 seconds, but could not find the training log table. Please check credentials or website structure.");
       }
 
       const lastId = await getLastId();
