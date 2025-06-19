@@ -10,7 +10,7 @@ if (!process.env.STRAVA_CONTEXT_ID || !process.env.BROWSERBASE_PROJECT_ID) {
 
 const StagehandConfig: ConstructorParams = {
   verbose: 1,
-  domSettleTimeoutMs: 30_000,
+  domSettleTimeoutMs: 45_000, // Increased to 45 seconds
   modelName: "google/gemini-2.0-flash", // Using the specified google model
   modelClientOptions: {
     apiKey: process.env.GOOGLE_API_KEY,

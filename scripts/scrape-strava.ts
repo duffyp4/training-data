@@ -195,64 +195,91 @@ async function scrapeStrava(activityUrlInput?: string) {
             console.log(`[${i+1}/${reversedActivities.length}] Fetching details for activity: ${activity.activityId}`);
             
             const activityUrl = `https://www.strava.com/activities/${activity.activityId}`;
-            await page.goto(activityUrl);
-
-            // Extract detailed info: weather, calories, HR, etc.
-            const detailedInfo = await page.extract({
-                instruction: "extract detailed information from this activity page including weather data (temperature, humidity, feels like, wind speed, wind direction), pace, calories, and any other performance metrics visible",
-                schema: z.object({
-                    weather: z.object({
-                        description: z.string().optional(),
-                        temperature: z.string().optional(),
-                        humidity: z.string().optional(),
-                        feelsLike: z.string().optional(),
-                        windSpeed: z.string().optional(),
-                        windDirection: z.string().optional(),
-                    }).optional(),
-                    pace: z.string().optional(),
-                    calories: z.string().optional(),
-                    averageHeartRate: z.string().optional(),
-                    maxHr: z.string().optional(), // Added maxHr
-                })
-            });
-
-            // Merge detailed info
-            activity.calories = detailedInfo.calories;
-            activity.averageHeartRate = detailedInfo.averageHeartRate;
-            activity.maxHr = detailedInfo.maxHr;
-            activity.weather = detailedInfo.weather;
-            activity.pace = detailedInfo.pace;
             
-            // Go to laps tab and extract lap data
-            try {
-                // This selector now tries to find a link containing "Laps" OR "Segments"
-                const lapTabSelector = "xpath=//a[contains(text(), 'Laps') or contains(text(), 'Segments')]";
-                
-                await page.act({
-                    description: "click the Laps or Segments tab",
-                    method: "click",
-                    selector: lapTabSelector
-                });
+            // Add retry logic for navigation and data extraction
+            let success = false;
+            let retryCount = 0;
+            const maxRetries = 3;
+            
+            while (!success && retryCount < maxRetries) {
+                try {
+                    if (retryCount > 0) {
+                        console.log(` -> Retry ${retryCount}/${maxRetries - 1} for activity ${activity.activityId}`);
+                        // Wait a bit before retrying
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
 
-                const lapData = await page.extract({
-                    // The instruction is now more generic to handle all cases
-                    instruction: "extract all lap, segment, or split data from the table, including number, distance, time, pace, GAP, elevation, and heart rate for each.",
-                    schema: z.object({
-                        laps: z.array(z.object({
-                            lapNumber: z.number().optional(),
-                            distance: z.string().optional(),
-                            time: z.string().optional(),
+                    await page.goto(activityUrl, { timeout: 45000 }); // Increased timeout to 45 seconds
+
+                    // Extract detailed info: weather, calories, HR, etc.
+                    const detailedInfo = await page.extract({
+                        instruction: "extract detailed information from this activity page including weather data (temperature, humidity, feels like, wind speed, wind direction), pace, calories, and any other performance metrics visible",
+                        schema: z.object({
+                            weather: z.object({
+                                description: z.string().optional(),
+                                temperature: z.string().optional(),
+                                humidity: z.string().optional(),
+                                feelsLike: z.string().optional(),
+                                windSpeed: z.string().optional(),
+                                windDirection: z.string().optional(),
+                            }).optional(),
                             pace: z.string().optional(),
-                            gap: z.string().optional(),
-                            elevation: z.string().optional(),
-                            heartRate: z.string().optional(),
-                        })).optional(),
-                    })
-                });
-                activity.laps = lapData.laps;
-                console.log(` -> Found ${lapData.laps?.length || 0} laps/segments.`);
-            } catch (e) {
-                console.warn(` -> Could not find or extract lap/segment data for activity ${activity.activityId}. Skipping.`);
+                            calories: z.string().optional(),
+                            averageHeartRate: z.string().optional(),
+                            maxHr: z.string().optional(), // Added maxHr
+                        })
+                    });
+
+                    // Merge detailed info
+                    activity.calories = detailedInfo.calories;
+                    activity.averageHeartRate = detailedInfo.averageHeartRate;
+                    activity.maxHr = detailedInfo.maxHr;
+                    activity.weather = detailedInfo.weather;
+                    activity.pace = detailedInfo.pace;
+                    
+                    // Go to laps tab and extract lap data
+                    try {
+                        // This selector now tries to find a link containing "Laps" OR "Segments"
+                        const lapTabSelector = "xpath=//a[contains(text(), 'Laps') or contains(text(), 'Segments')]";
+                        
+                        await page.act({
+                            description: "click the Laps or Segments tab",
+                            method: "click",
+                            selector: lapTabSelector
+                        });
+
+                        const lapData = await page.extract({
+                            // The instruction is now more generic to handle all cases
+                            instruction: "extract all lap, segment, or split data from the table, including number, distance, time, pace, GAP, elevation, and heart rate for each.",
+                            schema: z.object({
+                                laps: z.array(z.object({
+                                    lapNumber: z.number().optional(),
+                                    distance: z.string().optional(),
+                                    time: z.string().optional(),
+                                    pace: z.string().optional(),
+                                    gap: z.string().optional(),
+                                    elevation: z.string().optional(),
+                                    heartRate: z.string().optional(),
+                                })).optional(),
+                            })
+                        });
+                        activity.laps = lapData.laps;
+                        console.log(` -> Found ${lapData.laps?.length || 0} laps/segments.`);
+                    } catch (e) {
+                        console.warn(` -> Could not find or extract lap/segment data for activity ${activity.activityId}. Skipping.`);
+                    }
+                    
+                    success = true; // If we get here, everything worked
+                } catch (error) {
+                    retryCount++;
+                    console.error(` -> Error processing activity ${activity.activityId} (attempt ${retryCount}):`, error);
+                    
+                    if (retryCount >= maxRetries) {
+                        console.error(` -> Failed to process activity ${activity.activityId} after ${maxRetries} attempts. Skipping.`);
+                        // Don't fail the entire workflow, just skip this activity
+                        break;
+                    }
+                }
             }
         }
         
