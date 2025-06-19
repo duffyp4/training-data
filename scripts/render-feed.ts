@@ -28,11 +28,15 @@ async function getExistingIds(filePath: string): Promise<Set<string>> {
 }
 
 /**
- * Updates the last_id.json file with the ID of the most recent activity.
+ * Updates the last_id.json file with the ID and date of the most recent activity.
  */
-async function updateLastId(newestId: string) {
-  await fs.writeFile(LAST_ID_PATH, JSON.stringify({ last_id: newestId }, null, 2));
-  console.log(`Successfully updated last_id.json to: ${newestId}`);
+async function updateLastId(newestActivity: Activity) {
+  const lastData = {
+    last_id: newestActivity.activityId,
+    last_date: newestActivity.date || null
+  };
+  await fs.writeFile(LAST_ID_PATH, JSON.stringify(lastData, null, 2));
+  console.log(`Successfully updated last_id.json to: ID=${newestActivity.activityId}, Date=${newestActivity.date}`);
 }
 
 /**
@@ -218,7 +222,7 @@ async function renderFeed() {
   })[0];
   
   if (newestActivity) {
-      await updateLastId(newestActivity.activityId);
+      await updateLastId(newestActivity);
   }
 
   // 4. Ensure the entire index.md file is properly sorted (fixes any legacy ordering issues)

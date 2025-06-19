@@ -42,16 +42,35 @@ const AllActivitiesSchema = z.object({
   activities: z.array(ActivitySchema),
 });
 
-// Function to read the last processed ID
-async function getLastId(): Promise<string | null> {
+// Function to read the last processed ID and date
+async function getLastProcessed(): Promise<{id: string | null, date: string | null}> {
   try {
     const data = await fs.readFile('data/last_id.json', 'utf-8');
     const json = JSON.parse(data);
-    return json.last_id || null;
+    return {
+      id: json.last_id || null,
+      date: json.last_date || null
+    };
   } catch (error) {
     // If the file doesn't exist or is invalid, return null
     console.warn("Could not read last_id.json. Assuming no previous runs.");
-    return null;
+    return { id: null, date: null };
+  }
+}
+
+// Function to check if an activity date is newer than the last processed date
+function isActivityNewer(activityDate: string, lastDate: string | null): boolean {
+  if (!lastDate) return true; // If no last date, process all activities
+  
+  try {
+    // Parse activity date (handles formats like "Fri, 6/13/2025", "Wed, 6/11/2025", etc.)
+    const activityDateObj = new Date(activityDate);
+    const lastDateObj = new Date(lastDate);
+    
+    return activityDateObj > lastDateObj;
+  } catch (error) {
+    console.warn(`Could not parse dates for comparison: activity="${activityDate}", last="${lastDate}". Processing activity.`);
+    return true; // If we can't parse dates, err on the side of processing
   }
 }
 
@@ -134,8 +153,8 @@ async function scrapeStrava(activityUrlInput?: string) {
         throw new Error("Authentication failed. Waited for 30 seconds, but could not find the training log table. Please check credentials or website structure.");
       }
 
-      const lastId = await getLastId();
-      console.log(`Last processed activity ID: ${lastId}`);
+      const lastProcessed = await getLastProcessed();
+      console.log(`Last processed activity ID: ${lastProcessed.id}, Date: ${lastProcessed.date}`);
 
       // This is the prompt that was used in the original director.ai script
       const extractionInstruction = "extract basic information for all activities shown on this page including the sport type, date, workout name, duration, distance, elevation, and relative effort. Also extract the URL for the workout name link.";
@@ -168,15 +187,28 @@ async function scrapeStrava(activityUrlInput?: string) {
           if (activityIdMatch && activityIdMatch[1]) {
               const currentActivityId = activityIdMatch[1];
               
-              if (currentActivityId === lastId) {
-                  console.log(`Found last processed activity (${lastId}). Stopping scrape.`);
+              if (currentActivityId === lastProcessed.id) {
+                  console.log(`Found last processed activity (${lastProcessed.id}). Stopping scrape.`);
                   break;
               }
 
-              activities.push({
-                  activityId: currentActivityId,
-                  ...item,
-              });
+              // Only process activities that are newer than the last processed date
+              if (item.date && isActivityNewer(item.date, lastProcessed.date)) {
+                  activities.push({
+                      activityId: currentActivityId,
+                      ...item,
+                  });
+                  console.log(`  -> Added activity ${currentActivityId} (${item.date}) for processing`);
+              } else if (item.date) {
+                  console.log(`  -> Skipping activity ${currentActivityId} (${item.date}) - already processed or not newer`);
+              } else {
+                  // If no date available, process it to be safe
+                  activities.push({
+                      activityId: currentActivityId,
+                      ...item,
+                  });
+                  console.log(`  -> Added activity ${currentActivityId} (no date) for processing`);
+              }
           }
       }
     }
