@@ -1,4 +1,64 @@
 
+# Strava Activity Feed
+
+This feed is automatically updated by a nightly script.
+
+### Fri, 6/13/2025 — Afternoon Run (2.30 mi, 27:28, 11:56 /mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "12015116894",
+  "exerciseType": "Run",
+  "startTime": "2025-06-13T05:00:00.000Z",
+  "endTime": "2025-06-14T08:28:00.000Z",
+  "distance": "2.30 mi",
+  "duration": "27:28",
+  "elevationGain": "26 ft",
+  "pace": "11:56 /mi",
+  "calories": "331",
+  "averageHeartRate": "158 bpm",
+  "weather": {
+    "description": "Partly Cloudy",
+    "temperature": "75 ℉",
+    "humidity": "55%",
+    "feelsLike": "74 ℉",
+    "windSpeed": "8.2 mi/h",
+    "windDirection": "SW"
+  },
+  "laps": [
+    {
+      "lapNumber": 1,
+      "distance": "1.00 mi",
+      "time": "11:45",
+      "pace": "11:45 /mi",
+      "gap": "11:42 /mi",
+      "elevation": "12 ft",
+      "heartRate": null
+    },
+    {
+      "lapNumber": 2,
+      "distance": "1.00 mi",
+      "time": "12:15",
+      "pace": "12:15 /mi",
+      "gap": "12:12 /mi",
+      "elevation": "8 ft",
+      "heartRate": null
+    },
+    {
+      "lapNumber": 3,
+      "distance": "0.30 mi",
+      "time": "3:28",
+      "pace": "11:35 /mi",
+      "gap": "11:33 /mi",
+      "elevation": "6 ft",
+      "heartRate": null
+    }
+  ]
+}
+```
+
 ### Wed, 6/11/2025 — Morning Run (2.37 mi, 23:13, 9:47 /mi)
 
 ```jsonld
@@ -223,6 +283,62 @@
 }
 ```
 \n
+### Thu, 5/29/2025 — Morning Run (3.02 mi, 30:35, 10:08 /mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "11958434523",
+  "exerciseType": "Run",
+  "startTime": "2025-05-29T05:00:00.000Z",
+  "endTime": "2025-05-30T11:35:00.000Z",
+  "distance": "3.02 mi",
+  "duration": "30:35",
+  "elevationGain": "10 ft",
+  "pace": "10:08 /mi",
+  "calories": "434",
+  "averageHeartRate": "166 bpm",
+  "weather": {
+    "description": "Cloudy",
+    "temperature": "56 ℉",
+    "humidity": "86%",
+    "feelsLike": "53 ℉",
+    "windSpeed": "5.3 mi/h",
+    "windDirection": "W"
+  },
+  "laps": [
+    {
+      "lapNumber": 1,
+      "distance": "1.00 mi",
+      "time": "9:31",
+      "pace": "9:31 /mi",
+      "gap": "9:30 /mi",
+      "elevation": "1 ft",
+      "heartRate": null
+    },
+    {
+      "lapNumber": 2,
+      "distance": "1.00 mi",
+      "time": "10:15",
+      "pace": "10:15 /mi",
+      "gap": "10:13 /mi",
+      "elevation": "6 ft",
+      "heartRate": null
+    },
+    {
+      "lapNumber": 3,
+      "distance": "1.02 mi",
+      "time": "10:49",
+      "pace": "10:43 /mi",
+      "gap": "10:44 /mi",
+      "elevation": "3 ft",
+      "heartRate": null
+    }
+  ]
+}
+```
+\n
 ### Tue, 6/3/2025 — Afternoon Run (3.01 mi, 29:42, 9:52 /mi)
 
 ```jsonld
@@ -347,62 +463,6 @@
       "pace": "10:02 /mi",
       "gap": "10:00 /mi",
       "elevation": "1 ft",
-      "heartRate": null
-    }
-  ]
-}
-```
-\n
-### Thu, 5/29/2025 — Morning Run (3.02 mi, 30:35, 10:08 /mi)
-
-```jsonld
-{
-  "@context": "https://schema.org",
-  "@type": "ExerciseAction",
-  "identifier": "11958434523",
-  "exerciseType": "Run",
-  "startTime": "2025-05-29T05:00:00.000Z",
-  "endTime": "2025-05-30T11:35:00.000Z",
-  "distance": "3.02 mi",
-  "duration": "30:35",
-  "elevationGain": "10 ft",
-  "pace": "10:08 /mi",
-  "calories": "434",
-  "averageHeartRate": "166 bpm",
-  "weather": {
-    "description": "Cloudy",
-    "temperature": "56 ℉",
-    "humidity": "86%",
-    "feelsLike": "53 ℉",
-    "windSpeed": "5.3 mi/h",
-    "windDirection": "W"
-  },
-  "laps": [
-    {
-      "lapNumber": 1,
-      "distance": "1.00 mi",
-      "time": "9:31",
-      "pace": "9:31 /mi",
-      "gap": "9:30 /mi",
-      "elevation": "1 ft",
-      "heartRate": null
-    },
-    {
-      "lapNumber": 2,
-      "distance": "1.00 mi",
-      "time": "10:15",
-      "pace": "10:15 /mi",
-      "gap": "10:13 /mi",
-      "elevation": "6 ft",
-      "heartRate": null
-    },
-    {
-      "lapNumber": 3,
-      "distance": "1.02 mi",
-      "time": "10:49",
-      "pace": "10:43 /mi",
-      "gap": "10:44 /mi",
-      "elevation": "3 ft",
       "heartRate": null
     }
   ]
@@ -1577,61 +1637,3 @@
 
 
 
-### Fri, 6/13/2025 — Afternoon Run (2.30 mi, 27:28, 11:56 /mi)
-
-```jsonld
-{
-  "@context": "https://schema.org",
-  "@type": "ExerciseAction",
-  "identifier": "12015116894",
-  "exerciseType": "Run",
-  "startTime": "2025-06-13T05:00:00.000Z",
-  "endTime": "2025-06-14T08:28:00.000Z",
-  "distance": "2.30 mi",
-  "duration": "27:28",
-  "elevationGain": "26 ft",
-  "pace": "11:56 /mi",
-  "calories": "331",
-  "averageHeartRate": "158 bpm",
-  "weather": {
-    "description": "Partly Cloudy",
-    "temperature": "75 ℉",
-    "humidity": "55%",
-    "feelsLike": "74 ℉",
-    "windSpeed": "8.2 mi/h",
-    "windDirection": "SW"
-  },
-  "laps": [
-    {
-      "lapNumber": 1,
-      "distance": "1.00 mi",
-      "time": "11:45",
-      "pace": "11:45 /mi",
-      "gap": "11:42 /mi",
-      "elevation": "12 ft",
-      "heartRate": null
-    },
-    {
-      "lapNumber": 2,
-      "distance": "1.00 mi",
-      "time": "12:15",
-      "pace": "12:15 /mi",
-      "gap": "12:12 /mi",
-      "elevation": "8 ft",
-      "heartRate": null
-    },
-    {
-      "lapNumber": 3,
-      "distance": "0.30 mi",
-      "time": "3:28",
-      "pace": "11:35 /mi",
-      "gap": "11:33 /mi",
-      "elevation": "6 ft",
-      "heartRate": null
-    }
-  ]
-}
-```
-# Strava Activity Feed
-
-This feed is automatically updated by a nightly script. 

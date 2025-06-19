@@ -153,6 +153,8 @@ async function renderFeed() {
 
   if (activities.length === 0) {
     console.log("No new activities to render. Exiting.");
+    // Still run sorting to fix any existing ordering issues
+    await ensureProperSorting(INDEX_PATH);
     return;
   }
 
