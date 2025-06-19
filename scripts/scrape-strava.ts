@@ -187,12 +187,17 @@ async function scrapeStrava(activityUrlInput?: string) {
     } else {
         console.log(`Found ${activities.length} new activities to process. Fetching details...`);
 
-        // Reverse the array to process from oldest to newest, which is more intuitive.
-        const reversedActivities = activities.reverse();
+        // Sort activities by ID (newest first) for consistent processing order
+        // Note: Strava IDs are sequential, so higher ID = newer activity
+        const sortedActivities = activities.sort((a, b) => {
+            const aId = parseInt(a.activityId);
+            const bId = parseInt(b.activityId);
+            return bId - aId; // Descending order (newest first)
+        });
 
-        for (let i = 0; i < reversedActivities.length; i++) {
-            const activity = reversedActivities[i];
-            console.log(`[${i+1}/${reversedActivities.length}] Fetching details for activity: ${activity.activityId}`);
+        for (let i = 0; i < sortedActivities.length; i++) {
+            const activity = sortedActivities[i];
+            console.log(`[${i+1}/${sortedActivities.length}] Fetching details for activity: ${activity.activityId}`);
             
             const activityUrl = `https://www.strava.com/activities/${activity.activityId}`;
             
@@ -284,8 +289,8 @@ async function scrapeStrava(activityUrlInput?: string) {
         }
         
         // Write the fully enriched data to the file
-        await fs.writeFile('activities.json', JSON.stringify(reversedActivities, null, 2));
-        console.log(`Successfully wrote ${reversedActivities.length} enriched activities to activities.json`);
+        await fs.writeFile('activities.json', JSON.stringify(sortedActivities, null, 2));
+        console.log(`Successfully wrote ${sortedActivities.length} enriched activities to activities.json`);
     }
 
     console.log("Workflow completed successfully");

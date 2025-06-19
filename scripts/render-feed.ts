@@ -98,6 +98,44 @@ ${JSON.stringify(jsonLd, null, 2)}
   return md;
 }
 
+/**
+ * Ensures the entire index.md file is sorted by activity ID (newest first)
+ * This fixes any ordering issues from previous processing
+ */
+async function ensureProperSorting(filePath: string) {
+  try {
+    const content = await fs.readFile(filePath, 'utf-8');
+    
+    // Split content into individual activity blocks
+    const activityBlocks = content.split(/(?=### )/).filter(block => block.trim());
+    
+    // Find header content (everything before the first activity)
+    const headerMatch = content.match(/^([\s\S]*?)(?=### )/);
+    const header = headerMatch ? headerMatch[1] : '';
+    
+    // Extract activity IDs and sort blocks
+    const blocksWithIds = activityBlocks
+      .map(block => {
+        const idMatch = block.match(/"identifier": "(\d+)"/);
+        return {
+          block: block,
+          id: idMatch ? parseInt(idMatch[1]) : 0
+        };
+      })
+      .filter(item => item.id > 0) // Only keep blocks with valid IDs
+      .sort((a, b) => b.id - a.id); // Sort by ID descending (newest first)
+    
+    // Reconstruct the file
+    const sortedContent = header + blocksWithIds.map(item => item.block).join('');
+    
+    await fs.writeFile(filePath, sortedContent);
+    console.log(`Ensured ${blocksWithIds.length} activities are properly sorted by ID (newest first).`);
+    
+  } catch (error) {
+    console.warn("Could not sort index.md file:", error);
+  }
+}
+
 // --- MAIN LOGIC ---
 
 async function renderFeed() {
@@ -154,7 +192,14 @@ async function renderFeed() {
   } else {
     console.log(`Found ${newActivities.length} new activities to prepend to the feed.`);
     
-    const newContent = newActivities.map(toMarkdown).join('\\n');
+    // Sort new activities by ID (newest first) to ensure proper order
+    const sortedNewActivities = newActivities.sort((a, b) => {
+      const aId = parseInt(a.activityId);
+      const bId = parseInt(b.activityId);
+      return bId - aId; // Descending order (newest first)
+    });
+    
+    const newContent = sortedNewActivities.map(toMarkdown).join('\\n');
     existingContent = newContent + existingContent;
     
     console.log(`Successfully prepended ${newActivities.length} activities to ${INDEX_PATH}.`);
@@ -163,11 +208,19 @@ async function renderFeed() {
   // Write the final, potentially modified content back to the file
   await fs.writeFile(INDEX_PATH, existingContent);
 
-  // 3. Update last_id.json with the newest activity ID from the scrape
-  const newestActivity = activities.sort((a, b) => b.activityId.localeCompare(a.activityId))[0];
+  // 3. Update last_id.json with the newest activity ID from the scrape (using numeric comparison)
+  const newestActivity = activities.sort((a, b) => {
+    const aId = parseInt(a.activityId);
+    const bId = parseInt(b.activityId);
+    return bId - aId; // Descending order (newest first)
+  })[0];
+  
   if (newestActivity) {
       await updateLastId(newestActivity.activityId);
   }
+
+  // 4. Ensure the entire index.md file is properly sorted (fixes any legacy ordering issues)
+  await ensureProperSorting(INDEX_PATH);
 
   console.log("Feed render process completed.");
 }
