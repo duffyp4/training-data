@@ -244,18 +244,17 @@ async function scrapeStrava(activityUrlInput?: string) {
                     
                     // Go to laps tab and extract lap data
                     try {
-                        // This selector now tries to find a link containing "Laps" OR "Segments"
-                        const lapTabSelector = "xpath=//a[contains(text(), 'Laps') or contains(text(), 'Segments')]";
+                        // Look for either "Laps" or "Splits" tab (NOT Segments)
+                        const lapTabSelector = "xpath=//a[contains(text(), 'Laps') or contains(text(), 'Splits')]";
                         
                         await page.act({
-                            description: "click the Laps or Segments tab",
+                            description: "click the Laps or Splits tab",
                             method: "click",
                             selector: lapTabSelector
                         });
 
                         const lapData = await page.extract({
-                            // The instruction is now more generic to handle all cases
-                            instruction: "extract all lap, segment, or split data from the table, including number, distance, time, pace, GAP, elevation, and heart rate for each.",
+                            instruction: "extract all lap or split data from the table, including number, distance, time, pace, GAP, elevation, and heart rate for each.",
                             schema: z.object({
                                 laps: z.array(z.object({
                                     lapNumber: z.number().optional(),
@@ -269,9 +268,9 @@ async function scrapeStrava(activityUrlInput?: string) {
                             })
                         });
                         activity.laps = lapData.laps;
-                        console.log(` -> Found ${lapData.laps?.length || 0} laps/segments.`);
+                        console.log(` -> Found ${lapData.laps?.length || 0} laps/splits.`);
                     } catch (e) {
-                        console.warn(` -> Could not find or extract lap/segment data for activity ${activity.activityId}. Skipping.`);
+                        console.warn(` -> Could not find or extract lap/split data for activity ${activity.activityId}. Skipping.`);
                     }
                     
                     success = true; // If we get here, everything worked
