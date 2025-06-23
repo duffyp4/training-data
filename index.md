@@ -1,4 +1,60 @@
 
+### Mon, 6/23/2025 — Morning Run (2.00 mi, 25:19, 12:37 /mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "14890124228",
+  "exerciseType": "Run",
+  "startTime": "2025-06-23T00:00:00.000Z",
+  "endTime": "2025-06-24T01:19:00.000Z",
+  "distance": "2.00 mi",
+  "duration": "25:19",
+  "elevationGain": "39 ft",
+  "pace": "12:37 /mi",
+  "calories": "242",
+  "averageHeartRate": "152 bpm",
+  "weather": {
+    "description": "Clear",
+    "temperature": "76 ℉",
+    "humidity": "85%",
+    "feelsLike": "78 ℉",
+    "windSpeed": "9.1 mi/h",
+    "windDirection": "SW"
+  },
+  "laps": [
+    {
+      "lapNumber": 1,
+      "distance": "1.00 mi",
+      "time": "11:56",
+      "pace": "11:56 /mi",
+      "gap": "11:40 /mi",
+      "elevation": "1 ft",
+      "heartRate": "152 bpm"
+    },
+    {
+      "lapNumber": 2,
+      "distance": "1.00 mi",
+      "time": "13:12",
+      "pace": "13:12 /mi",
+      "gap": "13:02 /mi",
+      "elevation": "4 ft",
+      "heartRate": "152 bpm"
+    },
+    {
+      "lapNumber": 3,
+      "distance": "0.00 mi",
+      "time": "10s",
+      "pace": "27:24 /mi",
+      "gap": "19:30 /mi",
+      "elevation": "3 ft",
+      "heartRate": "151 bpm"
+    }
+  ]
+}
+```
+
 ### Sat, 6/21/2025 — Morning Run (2.82 mi, 32:41, 11:35/mi)
 
 ```jsonld
