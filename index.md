@@ -1,3 +1,317 @@
+### 2025-07-02 08:38:36 — Chicago Running (2.83 mi, 35:07, 12:24/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19610333804",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "2.83 mi",
+  "duration": "35:07",
+  "elevationGain": "33 ft",
+  "pace": "12:24/mi",
+  "calories": "331.0",
+  "averageHeartRate": "158.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-07-01 08:10:33 — Chicago Running (0.27 mi, 2:44, 10:07/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19600048643",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "0.27 mi",
+  "duration": "2:44",
+  "elevationGain": "0 ft",
+  "pace": "10:07/mi",
+  "calories": "31.0",
+  "averageHeartRate": "164.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-07-01 07:31:29 — Chicago Running (3.01 mi, 35:49, 11:53/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19599476117",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "3.01 mi",
+  "duration": "35:49",
+  "elevationGain": "39 ft",
+  "pace": "11:53/mi",
+  "calories": "348.0",
+  "averageHeartRate": "154.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-29 10:47:28 — DuPage County Running (3.52 mi, 127:23, 36:11/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19582933204",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "3.52 mi",
+  "duration": "127:23",
+  "elevationGain": "141 ft",
+  "pace": "36:11/mi",
+  "calories": "420.0",
+  "averageHeartRate": "103.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-28 06:54:17 — Chicago Running (7.01 mi, 82:41, 11:47/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19570329035",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "7.01 mi",
+  "duration": "82:41",
+  "elevationGain": "118 ft",
+  "pace": "11:47/mi",
+  "calories": "842.0",
+  "averageHeartRate": "164.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-26 08:58:10 — Chicago Running (2.03 mi, 27:03, 13:19/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19551408742",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "2.03 mi",
+  "duration": "27:03",
+  "elevationGain": "39 ft",
+  "pace": "13:19/mi",
+  "calories": "231.0",
+  "averageHeartRate": "150.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-25 09:23:37 — Chicago Running (3.03 mi, 34:59, 11:32/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19541709692",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "3.03 mi",
+  "duration": "34:59",
+  "elevationGain": "39 ft",
+  "pace": "11:32/mi",
+  "calories": "348.0",
+  "averageHeartRate": "157.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-24 08:30:18 — Chicago Running (0.67 mi, 10:20, 15:25/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19530646212",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "0.67 mi",
+  "duration": "10:20",
+  "elevationGain": "10 ft",
+  "pace": "15:25/mi",
+  "calories": "95.0",
+  "averageHeartRate": "151.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-24 07:49:02 — Chicago Running (3.01 mi, 37:49, 12:33/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19530535026",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "3.01 mi",
+  "duration": "37:49",
+  "elevationGain": "39 ft",
+  "pace": "12:33/mi",
+  "calories": "369.0",
+  "averageHeartRate": "160.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-23 07:33:01 — Chicago Running (2.01 mi, 25:19, 12:35/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19520280709",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "2.01 mi",
+  "duration": "25:19",
+  "elevationGain": "39 ft",
+  "pace": "12:35/mi",
+  "calories": "242.0",
+  "averageHeartRate": "152.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-21 09:52:33 — Washington Running (2.82 mi, 32:41, 11:35/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19502545990",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "2.82 mi",
+  "duration": "32:41",
+  "elevationGain": "33 ft",
+  "pace": "11:35/mi",
+  "calories": "352.0",
+  "averageHeartRate": "153.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-20 09:09:09 — Washington Running (6.06 mi, 62:57, 10:23/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19491745317",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "6.06 mi",
+  "duration": "62:57",
+  "elevationGain": "187 ft",
+  "pace": "10:23/mi",
+  "calories": "744.0",
+  "averageHeartRate": "170.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-15 10:51:41 — DuPage County Running (2.17 mi, 28:09, 12:58/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19442336226",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "2.17 mi",
+  "duration": "28:09",
+  "elevationGain": "56 ft",
+  "pace": "12:58/mi",
+  "calories": "265.0",
+  "averageHeartRate": "152.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-14 10:29:42 — Downers Grove Running (5.01 mi, 49:55, 9:57/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19432165516",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "5.01 mi",
+  "duration": "49:55",
+  "elevationGain": "33 ft",
+  "pace": "9:57/mi",
+  "calories": "606.0",
+  "averageHeartRate": "171.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
+
+### 2025-06-13 13:58:22 — Chicago Running (2.30 mi, 27:51, 12:06/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19423577974",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "2.30 mi",
+  "duration": "27:51",
+  "elevationGain": "26 ft",
+  "pace": "12:06/mi",
+  "calories": "360.0",
+  "averageHeartRate": "147.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
 
 ### Tue, 7/1/2025 — Morning Run (0.26 mi, 2:44, 10:11/mi)
 
