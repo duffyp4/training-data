@@ -269,17 +269,28 @@ class GarminScraper:
         if start_date:
             try:
                 dt = datetime.strptime(start_date, "%Y-%m-%d")
-                formatted_date = dt.strftime("%a, %-m/%-d/%Y")
-            except:
+                # Use platform-independent formatting
+                month = dt.month
+                day = dt.day
+                year = dt.year
+                day_name = dt.strftime("%a")
+                formatted_date = f"{day_name}, {month}/{day}/{year}"
+            except Exception as e:
+                logger.warning(f"Could not parse date '{start_date}': {e}")
                 formatted_date = start_date
 
         # Convert distance from meters to miles
         distance_m = garmin_activity.get('distance', 0)
         distance_mi = round(distance_m * 0.000621371, 2) if distance_m else 0
         
-        # Convert duration from seconds to MM:SS format
-        duration_s = garmin_activity.get('duration', 0)
-        duration_formatted = f"{duration_s // 60}:{duration_s % 60:02d}" if duration_s else ""
+        # Convert duration from seconds to MM:SS format  
+        duration_s = int(garmin_activity.get('duration', 0))  # Ensure integer from start
+        if duration_s:
+            minutes = duration_s // 60
+            seconds = duration_s % 60
+            duration_formatted = f"{minutes}:{seconds:02d}"
+        else:
+            duration_formatted = ""
         
         # Calculate pace (min/mile)
         pace = ""
@@ -291,7 +302,7 @@ class GarminScraper:
 
         # Convert elevation from meters to feet
         elevation_m = garmin_activity.get('elevationGain', 0)
-        elevation_ft = round(elevation_m * 3.28084) if elevation_m else 0
+        elevation_ft = int(round(elevation_m * 3.28084)) if elevation_m else 0
         
         # Get activity type
         activity_type = garmin_activity.get('activityType', {}).get('typeKey', 'unknown')
