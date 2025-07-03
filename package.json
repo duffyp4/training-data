@@ -8,6 +8,8 @@
     "create-context": "tsx scripts/create-context.ts",
     "scrape": "tsx scripts/scrape-strava.ts",
     "render": "tsx scripts/render-feed.ts",
+    "scrape-garmin": "python3 scripts/garmin_scraper.py",
+    "render-garmin": "python3 scripts/garmin_renderer.py",
     "build": "tsc",
     "postinstall": "playwright install chromium"
   },
