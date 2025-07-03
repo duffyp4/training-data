@@ -103,7 +103,10 @@ class GarminScraper:
                 # Fallback for different date formats
                 last_dt = datetime.strptime(last_date, "%Y-%m-%d")
             
-            return activity_dt > last_dt
+            # Only include activities AFTER the last date (not same day)
+            is_newer = activity_dt > last_dt
+            logger.info(f"Date comparison: {activity_date} > {last_date} = {is_newer}")
+            return is_newer
         except Exception as e:
             logger.warning(f"Could not parse dates for comparison: activity='{activity_date}', last='{last_date}': {e}")
             return True
@@ -390,13 +393,53 @@ class GarminScraper:
         
         for activity in activities:
             try:
-                logger.info(f"Processing activity {activity.get('activityId')}")
+                activity_id = activity.get('activityId')
+                activity_date = activity.get('startTimeLocal', '').split('T')[0]
+                
+                logger.info(f"Evaluating activity {activity_id} from {activity_date}")
+                
+                # Handle transition mode vs normal mode  
+                if last_processed.get("transition_mode"):
+                    # Transition mode: Use date-based filtering only, ignore ID comparison
+                    if not activity_date or not self.is_activity_newer(activity_date, last_processed["date"]):
+                        logger.info(f"Skipping activity {activity_id} (not newer than {last_processed['date']})")
+                        continue
+                    logger.info(f"Processing activity {activity_id} (transition mode - newer than {last_processed['date']})")
+                else:
+                    # Normal mode: Check Garmin ID comparison
+                    if last_processed["id"] and str(activity_id) == last_processed["id"]:
+                        logger.info(f"Found last processed Garmin activity {activity_id}. Stopping.")
+                        break
+                    elif last_processed["date"] and activity_date and not self.is_activity_newer(activity_date, last_processed["date"]):
+                        logger.info(f"Skipping activity {activity_id} (already processed)")
+                        continue
                 
                 # Convert to Strava format
                 converted = self.convert_garmin_to_strava_format(activity)
                 
-                # For initial testing, skip enhanced data collection
-                logger.info(f"Successfully converted activity {activity.get('activityId')}")
+                # Get enhanced data from FIT file
+                activity_id = activity.get('activityId')
+                fit_data = self.download_fit_file(activity_id)
+                if fit_data:
+                    enhanced = self.parse_fit_file(fit_data)
+                    if enhanced.get("runningDynamics"):
+                        converted["runningDynamics"] = enhanced["runningDynamics"]
+                        logger.info(f"Added running dynamics for activity {activity_id}")
+                
+                # Get sleep and wellness data for the activity date
+                activity_date = activity.get('startTimeLocal', '').split('T')[0]
+                if activity_date:
+                    sleep_data = self.get_sleep_data(activity_date)
+                    if sleep_data:
+                        converted["sleepData"] = sleep_data
+                        logger.info(f"Added sleep data for {activity_date}")
+                    
+                    wellness_data = self.get_wellness_data(activity_date)
+                    if wellness_data:
+                        converted["wellness"] = wellness_data
+                        logger.info(f"Added wellness data for {activity_date}")
+                
+                logger.info(f"Successfully processed activity {activity_id} with enhanced data")
                 
                 processed_activities.append(converted)
                 

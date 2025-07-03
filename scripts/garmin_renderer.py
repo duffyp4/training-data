@@ -38,6 +38,66 @@ class GarminRenderer:
             logger.info("index.md not found. A new one will be created.")
             return set()
 
+    def get_existing_datetime_signatures(self) -> set:
+        """Extract datetime signatures from existing activities for duplicate detection"""
+        signatures = set()
+        try:
+            content = self.index_path.read_text()
+            # Find all JSON-LD blocks
+            pattern = r'```jsonld\n(.*?)\n```'
+            matches = re.findall(pattern, content, re.DOTALL)
+            
+            for match in matches:
+                try:
+                    activity = json.loads(match)
+                    signature = self.create_datetime_signature_from_jsonld(activity)
+                    if signature:
+                        signatures.add(signature)
+                except json.JSONDecodeError:
+                    continue
+                    
+            logger.info(f"Created {len(signatures)} datetime signatures from existing activities")
+            return signatures
+        except FileNotFoundError:
+            return set()
+
+    def create_datetime_signature_from_jsonld(self, activity: Dict) -> Optional[str]:
+        """Create datetime signature from JSON-LD activity data"""
+        try:
+            start_time = activity.get('startTime', '')
+            duration = activity.get('duration', '')
+            distance = activity.get('distance', '')
+            
+            if start_time and duration and distance:
+                # Extract date part from ISO timestamp
+                date_part = start_time.split('T')[0] if 'T' in start_time else start_time[:10]
+                return f"{date_part}_{duration}_{distance}"
+        except Exception as e:
+            logger.debug(f"Could not create signature: {e}")
+        return None
+
+    def create_datetime_signature(self, activity: Dict) -> Optional[str]:
+        """Create datetime signature from Garmin activity data"""
+        try:
+            date = activity.get('date', '')
+            duration = activity.get('duration', '')
+            distance = activity.get('distance', '')
+            
+            if date and duration and distance:
+                # Extract just the date part if it contains day name
+                if ',' in date:
+                    date_part = date.split(',')[1].strip()
+                    # Convert M/D/YYYY to YYYY-MM-DD format
+                    dt = datetime.strptime(date_part, "%m/%d/%Y")
+                    date_normalized = dt.strftime("%Y-%m-%d")
+                else:
+                    date_normalized = date
+                
+                return f"{date_normalized}_{duration}_{distance}"
+        except Exception as e:
+            logger.debug(f"Could not create signature from activity: {e}")
+        return None
+
     def update_last_id(self, newest_activity: Dict):
         """Update the last_id.json file with the newest activity"""
         last_data = {
@@ -214,15 +274,39 @@ class GarminRenderer:
         # Get existing IDs to avoid duplicates
         existing_ids = self.get_existing_ids()
         
+        # Also get existing datetime signatures for Strava->Garmin transition
+        existing_signatures = self.get_existing_datetime_signatures()
+        
         # Read existing content
         try:
             existing_content = self.index_path.read_text()
         except FileNotFoundError:
             existing_content = ""
         
-        # Separate new activities from potential upgrades
-        new_activities = [act for act in activities if act.get("activityId") not in existing_ids]
-        potential_upgrades = [act for act in activities if act.get("activityId") in existing_ids]
+        # Separate new activities from potential upgrades/duplicates
+        new_activities = []
+        potential_upgrades = []
+        skipped_duplicates = []
+        
+        for activity in activities:
+            activity_id = activity.get("activityId")
+            
+            # Check for ID-based duplicates
+            if activity_id in existing_ids:
+                potential_upgrades.append(activity)
+                continue
+            
+            # Check for datetime signature duplicates (Strava->Garmin transition)
+            signature = self.create_datetime_signature(activity)
+            if signature and signature in existing_signatures:
+                logger.info(f"Skipping Garmin activity {activity_id} - matches existing activity by datetime signature: {signature}")
+                skipped_duplicates.append(activity)
+                continue
+            
+            new_activities.append(activity)
+        
+        if skipped_duplicates:
+            logger.info(f"Skipped {len(skipped_duplicates)} duplicate activities based on datetime matching")
         
         # Handle upgrades (activities with enhanced data)
         upgrades_count = 0
