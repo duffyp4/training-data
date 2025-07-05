@@ -1,3 +1,23 @@
+### 2025-07-04 07:32:58 — Glen Ellyn Running (3.92 mi, 36:06, 9:12/mi)
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "ExerciseAction",
+  "identifier": "19629582499",
+  "exerciseType": "Run",
+  "startTime": "",
+  "endTime": "",
+  "distance": "3.92 mi",
+  "duration": "36:06",
+  "elevationGain": "138 ft",
+  "pace": "9:12/mi",
+  "calories": "454.0",
+  "averageHeartRate": "178.0 bpm",
+  "weather": {},
+  "laps": []
+}
+```
 ### 2025-07-02 08:38:36 — Chicago Running (2.83 mi, 35:07, 12:24/mi)
 
 ```jsonld
