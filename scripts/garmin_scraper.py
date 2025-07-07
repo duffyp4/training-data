@@ -384,22 +384,22 @@ class GarminScraper:
             try:
                 # Parse the full Garmin timestamp
                 if 'T' in start_time_local:
-                    # ISO format: "2025-07-07T14:29:18.000"
-                    # Remove any trailing timezone info and add Z for UTC
-                    clean_time = start_time_local.split('+')[0].split('-', 3)[0:3]  # Keep date part intact
-                    clean_time = '-'.join(clean_time[0:3])
-                    if len(start_time_local.split('T')) > 1:
-                        time_part = start_time_local.split('T')[1].split('+')[0].split('-')[0]
-                        clean_time = clean_time + 'T' + time_part
+                    # ISO format: "2025-07-07T14:29:18.000" or "2025-07-07T14:29:18"
+                    # Clean up the timestamp and ensure proper format
+                    clean_time = start_time_local.split('+')[0]  # Remove timezone offset if present
                     
-                    # Ensure it ends with Z for UTC
-                    if not clean_time.endswith('Z'):
-                        if not clean_time.endswith('.000'):
-                            if '.' not in clean_time.split('T')[-1]:
-                                clean_time += '.000'
-                        clean_time += 'Z'
+                    # Ensure it ends with .000Z for consistency
+                    if not clean_time.endswith('.000'):
+                        if '.' in clean_time:
+                            # Has milliseconds already, just ensure 3 digits
+                            parts = clean_time.split('.')
+                            ms = parts[1][:3].ljust(3, '0')  # Take first 3 digits, pad if needed
+                            clean_time = f"{parts[0]}.{ms}"
+                        else:
+                            # No milliseconds, add .000
+                            clean_time += '.000'
                     
-                    start_time_iso = clean_time
+                    start_time_iso = clean_time + 'Z'
                     
                     # Calculate end time by adding duration
                     duration_s = summary_dto.get('duration', 0)

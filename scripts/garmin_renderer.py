@@ -157,9 +157,15 @@ class GarminRenderer:
     def to_markdown(self, activity: Dict) -> str:
         """Convert activity to markdown with JSON-LD"""
         
-        # Parse start and end times
-        start_time = self.parse_date_to_iso(activity.get("date", ""))
-        end_time = self.parse_duration_to_iso_duration(activity.get("duration", ""), start_time)
+        # Use existing start and end times if available, otherwise generate them
+        start_time = activity.get("startTime", "")
+        end_time = activity.get("endTime", "")
+        
+        # Fallback to generating times only if they don't exist
+        if not start_time:
+            start_time = self.parse_date_to_iso(activity.get("date", ""))
+        if not end_time:
+            end_time = self.parse_duration_to_iso_duration(activity.get("duration", ""), start_time)
         
         # Build the JSON-LD structure
         json_ld = {
