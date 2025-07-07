@@ -102,22 +102,28 @@ class GarminScraper:
             
             activity_dt = datetime.strptime(activity_date_only, "%Y-%m-%d")
             
-            # Parse last date format (e.g., "Tue, 7/1/2025")
+            # Parse last date format - handle multiple possible formats
             if ',' in last_date:
+                # Strava format: "Tue, 7/1/2025"
                 date_part = last_date.split(',')[1].strip()
                 last_dt = datetime.strptime(date_part, "%m/%d/%Y")
+            elif 'T' in last_date or (' ' in last_date and ':' in last_date):
+                # Garmin timestamp format: "2025-07-06 14:29:18" or "2025-07-06T14:29:18"
+                last_date_only = last_date.split('T')[0].split(' ')[0]
+                last_dt = datetime.strptime(last_date_only, "%Y-%m-%d")
             else:
-                # Fallback for different date formats
+                # Simple date format: "2025-07-06"
                 last_dt = datetime.strptime(last_date, "%Y-%m-%d")
             
             # Only include activities AFTER the last date (not same day)
             is_newer = activity_dt > last_dt
-            logger.info(f"Date comparison: {activity_date_only} > {last_date} = {is_newer}")
+            logger.info(f"Date comparison: {activity_date_only} > {last_dt.strftime('%Y-%m-%d')} = {is_newer}")
             return is_newer
         except Exception as e:
             logger.warning(f"Could not parse dates for comparison: activity='{activity_date}', last='{last_date}': {e}")
-            # In case of parsing error, default to including the activity to be safe
-            return True
+            # FIXED: Default to excluding the activity when date parsing fails (safer)
+            # This prevents processing old activities when date formats are unclear
+            return False
 
     def get_activities_since_date(self, start_date: datetime) -> List[Dict]:
         """Get activities from Garmin Connect since a specific date"""
