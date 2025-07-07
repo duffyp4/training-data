@@ -92,8 +92,15 @@ class GarminScraper:
             return True
         
         try:
-            # Parse Garmin date format (YYYY-MM-DD)
-            activity_dt = datetime.strptime(activity_date, "%Y-%m-%d")
+            # Parse Garmin date format - handle both full timestamps and date-only
+            if 'T' in activity_date or ' ' in activity_date:
+                # Garmin format with timestamp: "2025-07-07T08:08:43" or "2025-07-07 08:08:43"
+                activity_date_only = activity_date.split('T')[0].split(' ')[0]
+            else:
+                # Already just date: "2025-07-07"
+                activity_date_only = activity_date
+            
+            activity_dt = datetime.strptime(activity_date_only, "%Y-%m-%d")
             
             # Parse last date format (e.g., "Tue, 7/1/2025")
             if ',' in last_date:
@@ -105,10 +112,11 @@ class GarminScraper:
             
             # Only include activities AFTER the last date (not same day)
             is_newer = activity_dt > last_dt
-            logger.info(f"Date comparison: {activity_date} > {last_date} = {is_newer}")
+            logger.info(f"Date comparison: {activity_date_only} > {last_date} = {is_newer}")
             return is_newer
         except Exception as e:
             logger.warning(f"Could not parse dates for comparison: activity='{activity_date}', last='{last_date}': {e}")
+            # In case of parsing error, default to including the activity to be safe
             return True
 
     def get_activities_since_date(self, start_date: datetime) -> List[Dict]:
@@ -156,7 +164,23 @@ class GarminScraper:
     def download_fit_file(self, activity_id: int) -> Optional[bytes]:
         """Download FIT file for an activity"""
         try:
-            return self.client.download_activity(activity_id, dl_fmt=self.client.ActivityDownloadFormat.ORIGINAL)
+            # FIT files are binary data, so we need to use raw HTTP request
+            # Get the session and make a direct request for binary data
+            import requests
+            
+            # Use garth's session to maintain authentication
+            response = requests.get(
+                f"https://connectapi.garmin.com/download-service/files/activity/{activity_id}",
+                headers=garth.client.request_headers(),
+                cookies=garth.client.session.cookies
+            )
+            
+            if response.status_code == 200 and response.content:
+                logger.info(f"Successfully downloaded FIT file for activity {activity_id}")
+                return response.content
+            else:
+                logger.warning(f"Failed to download FIT file for activity {activity_id}: {response.status_code}")
+                return None
         except Exception as e:
             logger.warning(f"Could not download FIT file for activity {activity_id}: {e}")
             return None
@@ -170,36 +194,47 @@ class GarminScraper:
         }
         
         try:
-            fit_file = FitFile(fit_data)
+            import io
+            fit_file = FitFile(io.BytesIO(fit_data))
             
             # Track all record messages for detailed analysis
             records = []
             for record in fit_file.get_messages('record'):
                 record_data = {}
                 for field in record:
-                    record_data[field.name] = field.value
+                    if field.value is not None:
+                        record_data[field.name] = field.value
                 records.append(record_data)
             
             if records:
                 # Extract running dynamics
                 cadence_values = [r.get('cadence') for r in records if r.get('cadence')]
                 if cadence_values:
-                    enhanced_data["runningDynamics"]["avgCadence"] = sum(cadence_values) // len(cadence_values)
+                    enhanced_data["runningDynamics"]["avgCadence"] = f"{sum(cadence_values) // len(cadence_values)} spm"
                 
-                # Extract stride length if available
+                # Extract stride length if available (convert from mm to m)
                 stride_length_values = [r.get('stride_length') for r in records if r.get('stride_length')]
                 if stride_length_values:
-                    enhanced_data["runningDynamics"]["avgStrideLength"] = round(sum(stride_length_values) / len(stride_length_values), 2)
+                    avg_stride_mm = sum(stride_length_values) / len(stride_length_values)
+                    enhanced_data["runningDynamics"]["avgStrideLength"] = f"{round(avg_stride_mm / 1000, 2)} m"
                 
-                # Extract ground contact time
+                # Extract ground contact time (convert from ms)
                 gct_values = [r.get('stance_time') for r in records if r.get('stance_time')]
                 if gct_values:
-                    enhanced_data["runningDynamics"]["groundContactTime"] = sum(gct_values) // len(gct_values)
+                    enhanced_data["runningDynamics"]["groundContactTime"] = f"{sum(gct_values) // len(gct_values)} ms"
                 
-                # Extract vertical oscillation
+                # Extract vertical oscillation (convert from mm to cm)
                 vo_values = [r.get('vertical_oscillation') for r in records if r.get('vertical_oscillation')]
                 if vo_values:
-                    enhanced_data["runningDynamics"]["verticalOscillation"] = round(sum(vo_values) / len(vo_values), 1)
+                    avg_vo_mm = sum(vo_values) / len(vo_values)
+                    enhanced_data["runningDynamics"]["verticalOscillation"] = f"{round(avg_vo_mm / 10, 1)} cm"
+                
+                # Extract power data if available
+                power_values = [r.get('power') for r in records if r.get('power')]
+                if power_values:
+                    enhanced_data["runningDynamics"]["avgPower"] = f"{sum(power_values) // len(power_values)} W"
+            
+            logger.info("Successfully parsed FIT file for running dynamics")
             
         except Exception as e:
             logger.warning(f"Error parsing FIT file: {e}")
@@ -209,15 +244,34 @@ class GarminScraper:
     def get_sleep_data(self, date: str) -> Optional[Dict]:
         """Get sleep data for a specific date"""
         try:
-            sleep_data = self.client.get_sleep_data(date)
-            if sleep_data:
-                return {
-                    "sleepScore": sleep_data.get('sleepScores', {}).get('overall', {}).get('value'),
-                    "deepSleep": self.format_sleep_duration(sleep_data.get('deepSleepSeconds')),
-                    "lightSleep": self.format_sleep_duration(sleep_data.get('lightSleepSeconds')),
-                    "remSleep": self.format_sleep_duration(sleep_data.get('remSleepSeconds')),
-                    "awakeTime": self.format_sleep_duration(sleep_data.get('awakeDurationSeconds'))
-                }
+            # Use the correct sleep data endpoint format
+            sleep_data = garth.connectapi(f"/wellness-service/wellness/dailySleepData", params={"date": date})
+            
+            if sleep_data and sleep_data.get('dailySleepDTO'):
+                sleep_dto = sleep_data['dailySleepDTO']
+                result = {}
+                
+                # Overall sleep score
+                if sleep_dto.get('sleepScores'):
+                    result["sleepScore"] = sleep_dto['sleepScores'].get('overall', {}).get('value')
+                
+                # Sleep stages in hours and minutes
+                if sleep_dto.get('deepSleepSeconds'):
+                    result["deepSleep"] = self.format_sleep_duration(sleep_dto['deepSleepSeconds'])
+                if sleep_dto.get('lightSleepSeconds'):
+                    result["lightSleep"] = self.format_sleep_duration(sleep_dto['lightSleepSeconds'])
+                if sleep_dto.get('remSleepSeconds'):
+                    result["remSleep"] = self.format_sleep_duration(sleep_dto['remSleepSeconds'])
+                if sleep_dto.get('awakeDurationSeconds'):
+                    result["awakeTime"] = self.format_sleep_duration(sleep_dto['awakeDurationSeconds'])
+                
+                # Total sleep time
+                if sleep_dto.get('sleepTimeSeconds'):
+                    result["totalSleep"] = self.format_sleep_duration(sleep_dto['sleepTimeSeconds'])
+                
+                logger.info(f"Successfully retrieved sleep data for {date}")
+                return result if result else None
+                
         except Exception as e:
             logger.warning(f"Could not fetch sleep data for {date}: {e}")
         return None
@@ -225,27 +279,46 @@ class GarminScraper:
     def get_wellness_data(self, date: str) -> Optional[Dict]:
         """Get wellness data for a specific date"""
         try:
-            # Get body battery data
-            body_battery = self.client.get_body_battery(date)
-            
-            # Get HRV data
-            hrv_data = self.client.get_hrv_data(date)
-            
-            # Get resting heart rate
-            rhr_data = self.client.get_rhr_day(date)
-            
             wellness = {}
             
-            if body_battery:
-                wellness["bodyBattery"] = body_battery.get('charged')
+            # Get body battery data
+            try:
+                bb_data = garth.connectapi(f"/wellness-service/wellness/bodyBattery/reports/daily/{date}")
+                if bb_data and bb_data.get('bodyBatteryValuesArray'):
+                    # Get the charged value (end of day battery level)
+                    values = bb_data['bodyBatteryValuesArray']
+                    if values:
+                        wellness["bodyBattery"] = values[-1].get('charged')
+            except Exception as e:
+                logger.debug(f"Could not get body battery data: {e}")
             
-            if hrv_data and hrv_data.get('hrvSummary'):
-                wellness["hrv"] = hrv_data['hrvSummary'].get('weeklyAvg')
+            # Get stress data
+            try:
+                stress_data = garth.connectapi(f"/wellness-service/wellness/dailyStress/{date}")
+                if stress_data and stress_data.get('overallStressLevel'):
+                    wellness["stressLevel"] = stress_data['overallStressLevel']
+            except Exception as e:
+                logger.debug(f"Could not get stress data: {e}")
             
-            if rhr_data:
-                wellness["restingHeartRate"] = rhr_data.get('restingHeartRate')
+            # Get resting heart rate
+            try:
+                rhr_data = garth.connectapi(f"/wellness-service/wellness/dailyHeartRate/{date}")
+                if rhr_data and rhr_data.get('restingHeartRate'):
+                    wellness["restingHeartRate"] = f"{rhr_data['restingHeartRate']} bpm"
+            except Exception as e:
+                logger.debug(f"Could not get resting heart rate: {e}")
             
-            return wellness if wellness else None
+            # Get HRV data
+            try:
+                hrv_data = garth.connectapi(f"/hrv-service/hrv/{date}")
+                if hrv_data and hrv_data.get('hrvSummary', {}).get('weeklyAvg'):
+                    wellness["hrv"] = f"{hrv_data['hrvSummary']['weeklyAvg']} ms"
+            except Exception as e:
+                logger.debug(f"Could not get HRV data: {e}")
+            
+            if wellness:
+                logger.info(f"Successfully retrieved wellness data for {date}")
+                return wellness
             
         except Exception as e:
             logger.warning(f"Could not fetch wellness data for {date}: {e}")
@@ -263,9 +336,24 @@ class GarminScraper:
     def convert_garmin_to_strava_format(self, garmin_activity: Dict, enhanced_data: Optional[Dict] = None) -> Dict:
         """Convert Garmin activity format to match existing Strava format"""
         
-        # Parse the start time
-        start_time_local = garmin_activity.get('startTimeLocal', '')
-        start_date = start_time_local.split('T')[0] if start_time_local else ''
+        # Extract nested data objects
+        summary_dto = garmin_activity.get('summaryDTO', {})
+        activity_type_dto = garmin_activity.get('activityTypeDTO', {})
+        
+        # Parse the start time from summaryDTO
+        start_time_local = summary_dto.get('startTimeLocal', '')
+        if not start_time_local:
+            start_time_local = summary_dto.get('startTimeGMT', '')
+        
+        # Extract date from timestamp
+        start_date = ''
+        if start_time_local:
+            if 'T' in start_time_local:
+                start_date = start_time_local.split('T')[0]
+            elif ' ' in start_time_local:
+                start_date = start_time_local.split(' ')[0]
+            else:
+                start_date = start_time_local
         
         # Format date to match existing format (e.g., "Tue, 7/1/2025")
         formatted_date = ""
@@ -283,12 +371,14 @@ class GarminScraper:
                 formatted_date = start_date
 
         # Convert distance from meters to miles
-        distance_m = garmin_activity.get('distance', 0)
+        distance_m = summary_dto.get('distance', 0)
         distance_mi = round(distance_m * 0.000621371, 2) if distance_m else 0
         
         # Convert duration from seconds to MM:SS format  
-        duration_s = int(garmin_activity.get('duration', 0))  # Ensure integer from start
+        duration_s = summary_dto.get('duration', 0)
+        # Handle both integer and float duration values
         if duration_s:
+            duration_s = int(float(duration_s))  # Convert to int safely
             minutes = duration_s // 60
             seconds = duration_s % 60
             duration_formatted = f"{minutes}:{seconds:02d}"
@@ -304,14 +394,21 @@ class GarminScraper:
             pace = f"{pace_min}:{pace_sec:02d}/mi"
 
         # Convert elevation from meters to feet
-        elevation_m = garmin_activity.get('elevationGain', 0)
+        elevation_m = summary_dto.get('elevationGain', 0)
         elevation_ft = int(round(elevation_m * 3.28084)) if elevation_m else 0
         
-        # Get activity type
-        activity_type = garmin_activity.get('activityType', {}).get('typeKey', 'unknown')
+        # Get activity type from activityTypeDTO
+        type_key = activity_type_dto.get('typeKey', 'unknown')
         
         # Convert activity type to match Strava format
-        exercise_type = "Run" if "running" in activity_type.lower() else activity_type.title()
+        if "running" in type_key.lower():
+            exercise_type = "Run"
+        elif "cycling" in type_key.lower():
+            exercise_type = "Bike"
+        elif "swimming" in type_key.lower():
+            exercise_type = "Swim"
+        else:
+            exercise_type = type_key.title()
         
         # Get workout name
         workout_name = garmin_activity.get('activityName', f"{exercise_type}")
@@ -326,16 +423,46 @@ class GarminScraper:
             "distance": f"{distance_mi:.2f} mi" if distance_mi else "",
             "elevation": f"{elevation_ft} ft",
             "pace": pace,
-            "calories": str(garmin_activity.get('calories', '')),
-            "averageHeartRate": f"{garmin_activity.get('averageHR', '')} bpm" if garmin_activity.get('averageHR') else "",
+            "calories": str(int(summary_dto.get('calories', 0))) if summary_dto.get('calories') else "",
+            "averageHeartRate": f"{int(summary_dto.get('averageHR', 0))} bpm" if summary_dto.get('averageHR') else "",
             "weather": self.get_weather_data(garmin_activity),
             "laps": self.get_lap_data(garmin_activity)
         }
         
-        # Add enhanced data if available
+        # Add running dynamics directly from summaryDTO (this is the enhanced data we were missing!)
+        running_dynamics = {}
+        
+        if summary_dto.get('averageRunCadence'):
+            running_dynamics["avgCadence"] = f"{int(summary_dto['averageRunCadence'])} spm"
+        
+        if summary_dto.get('strideLength'):
+            # Convert from meters to more readable format
+            stride_m = summary_dto['strideLength']
+            running_dynamics["avgStrideLength"] = f"{stride_m:.2f} m"
+        
+        if summary_dto.get('groundContactTime'):
+            # Convert from seconds to milliseconds
+            gct_ms = int(summary_dto['groundContactTime'] * 1000)
+            running_dynamics["groundContactTime"] = f"{gct_ms} ms"
+        
+        if summary_dto.get('verticalOscillation'):
+            # Convert from meters to centimeters
+            vo_cm = summary_dto['verticalOscillation'] * 100
+            running_dynamics["verticalOscillation"] = f"{vo_cm:.1f} cm"
+        
+        if summary_dto.get('averagePower'):
+            running_dynamics["avgPower"] = f"{int(summary_dto['averagePower'])} W"
+        
+        if running_dynamics:
+            strava_format["runningDynamics"] = running_dynamics
+        
+        # Add enhanced data if available (from FIT file parsing, when we get that working)
         if enhanced_data:
             if enhanced_data.get("runningDynamics"):
-                strava_format["runningDynamics"] = enhanced_data["runningDynamics"]
+                # Merge with existing running dynamics
+                if "runningDynamics" not in strava_format:
+                    strava_format["runningDynamics"] = {}
+                strava_format["runningDynamics"].update(enhanced_data["runningDynamics"])
         
         return strava_format
 
@@ -363,7 +490,7 @@ class GarminScraper:
         return []
 
     def process_activities(self, specific_activity_id: Optional[str] = None) -> List[Dict]:
-        """Main processing function"""
+        """Main processing function with proper date filtering"""
         
         if not self.authenticate():
             return []
@@ -380,73 +507,104 @@ class GarminScraper:
                 logger.error(f"Error processing activity {specific_activity_id}: {e}")
             return []
         
-        # Process new activities  
+        # Use the proper date filtering logic from get_activities_since_date
         try:
-            activities_response = garth.connectapi("/activitylist-service/activities/search/activities", params={"limit": 50})
-            activities = activities_response if isinstance(activities_response, list) else []
+            activities_response = garth.connectapi("/activitylist-service/activities/search/activities", params={"limit": 100})
+            all_activities = activities_response if isinstance(activities_response, list) else []
         except Exception as e:
             logger.error(f"Error fetching activities: {e}")
             return []
         
+        # Apply proper date filtering logic
         processed_activities = []
         last_processed = self.get_last_processed()
         
-        for activity in activities:
+        logger.info(f"Last processed info: {last_processed}")
+        logger.info(f"Retrieved {len(all_activities)} activities from Garmin")
+        
+        for activity in all_activities:
             try:
                 activity_id = activity.get('activityId')
-                activity_date = activity.get('startTimeLocal', '').split('T')[0]
+                
+                # Extract date more robustly from different timestamp formats
+                start_time = activity.get('startTimeLocal', '')
+                if 'T' in start_time:
+                    activity_date = start_time.split('T')[0]
+                elif ' ' in start_time:
+                    activity_date = start_time.split(' ')[0]
+                else:
+                    activity_date = start_time
                 
                 logger.info(f"Evaluating activity {activity_id} from {activity_date}")
                 
-                # Handle transition mode vs normal mode  
+                # Apply the same filtering logic as get_activities_since_date
+                should_process = False
+                
                 if last_processed.get("transition_mode"):
                     # Transition mode: Use date-based filtering only, ignore ID comparison
-                    if not activity_date or not self.is_activity_newer(activity_date, last_processed["date"]):
-                        logger.info(f"Skipping activity {activity_id} (not newer than {last_processed['date']})")
-                        continue
-                    logger.info(f"Processing activity {activity_id} (transition mode - newer than {last_processed['date']})")
+                    if activity_date and self.is_activity_newer(activity_date, last_processed["date"]):
+                        should_process = True
+                        logger.info(f"Will process activity {activity_id} (transition mode - newer than {last_processed['date']})")
+                    else:
+                        logger.info(f"Skipping activity {activity_id} (not newer than last Strava date {last_processed['date']})")
                 else:
                     # Normal mode: Check Garmin ID comparison
                     if last_processed["id"] and str(activity_id) == last_processed["id"]:
                         logger.info(f"Found last processed Garmin activity {activity_id}. Stopping.")
                         break
-                    elif last_processed["date"] and activity_date and not self.is_activity_newer(activity_date, last_processed["date"]):
+                    elif activity_date and self.is_activity_newer(activity_date, last_processed["date"]):
+                        should_process = True
+                        logger.info(f"Will process activity {activity_id} (normal mode)")
+                    else:
                         logger.info(f"Skipping activity {activity_id} (already processed)")
-                        continue
+                
+                if not should_process:
+                    continue
+                
+                # Get detailed activity data
+                try:
+                    detailed_activity = garth.connectapi(f"/activity-service/activity/{activity_id}")
+                    if not detailed_activity:
+                        logger.warning(f"Could not get detailed data for activity {activity_id}")
+                        detailed_activity = activity
+                except Exception as e:
+                    logger.warning(f"Error getting detailed activity data for {activity_id}: {e}")
+                    detailed_activity = activity
                 
                 # Convert to Strava format
-                converted = self.convert_garmin_to_strava_format(activity)
+                converted = self.convert_garmin_to_strava_format(detailed_activity)
                 
-                # Get enhanced data from FIT file
-                activity_id = activity.get('activityId')
-                fit_data = self.download_fit_file(activity_id)
-                if fit_data:
-                    enhanced = self.parse_fit_file(fit_data)
-                    if enhanced.get("runningDynamics"):
-                        converted["runningDynamics"] = enhanced["runningDynamics"]
-                        logger.info(f"Added running dynamics for activity {activity_id}")
+                # Temporarily disable FIT file download until we resolve API issues
+                # logger.info(f"Downloading FIT file for activity {activity_id}")
+                # fit_data = self.download_fit_file(activity_id)
+                # if fit_data:
+                #     enhanced = self.parse_fit_file(fit_data)
+                #     if enhanced.get("runningDynamics"):
+                #         converted["runningDynamics"] = enhanced["runningDynamics"]
+                #         logger.info(f"Added running dynamics for activity {activity_id}")
                 
                 # Get sleep and wellness data for the activity date
-                activity_date = activity.get('startTimeLocal', '').split('T')[0]
                 if activity_date:
+                    logger.info(f"Getting sleep data for {activity_date}")
                     sleep_data = self.get_sleep_data(activity_date)
                     if sleep_data:
                         converted["sleepData"] = sleep_data
                         logger.info(f"Added sleep data for {activity_date}")
                     
+                    logger.info(f"Getting wellness data for {activity_date}")
                     wellness_data = self.get_wellness_data(activity_date)
                     if wellness_data:
                         converted["wellness"] = wellness_data
                         logger.info(f"Added wellness data for {activity_date}")
                 
                 logger.info(f"Successfully processed activity {activity_id} with enhanced data")
-                
                 processed_activities.append(converted)
                 
             except Exception as e:
                 logger.error(f"Error processing activity {activity.get('activityId')}: {e}")
                 continue
         
+        logger.info(f"Processed {len(processed_activities)} activities total")
         return processed_activities
 
     def save_activities(self, activities: List[Dict]):
