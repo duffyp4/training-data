@@ -376,6 +376,49 @@ class GarminScraper:
                 logger.warning(f"Could not parse date '{start_date}': {e}")
                 formatted_date = start_date
 
+        # Extract and format actual start time for JSON-LD
+        start_time_iso = ""
+        end_time_iso = ""
+        
+        if start_time_local:
+            try:
+                # Parse the full Garmin timestamp
+                if 'T' in start_time_local:
+                    # ISO format: "2025-07-07T14:29:18.000"
+                    # Remove any trailing timezone info and add Z for UTC
+                    clean_time = start_time_local.split('+')[0].split('-', 3)[0:3]  # Keep date part intact
+                    clean_time = '-'.join(clean_time[0:3])
+                    if len(start_time_local.split('T')) > 1:
+                        time_part = start_time_local.split('T')[1].split('+')[0].split('-')[0]
+                        clean_time = clean_time + 'T' + time_part
+                    
+                    # Ensure it ends with Z for UTC
+                    if not clean_time.endswith('Z'):
+                        if not clean_time.endswith('.000'):
+                            if '.' not in clean_time.split('T')[-1]:
+                                clean_time += '.000'
+                        clean_time += 'Z'
+                    
+                    start_time_iso = clean_time
+                    
+                    # Calculate end time by adding duration
+                    duration_s = summary_dto.get('duration', 0)
+                    if duration_s and start_time_iso:
+                        try:
+                            # Parse start time to add duration
+                            start_dt = datetime.fromisoformat(start_time_iso.replace('Z', '+00:00'))
+                            end_dt = start_dt + timedelta(seconds=int(duration_s))
+                            end_time_iso = end_dt.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+                        except Exception as e:
+                            logger.warning(f"Could not calculate end time: {e}")
+                            end_time_iso = start_time_iso
+                else:
+                    # Handle other date formats if needed
+                    logger.debug(f"Non-ISO start time format: {start_time_local}")
+                    
+            except Exception as e:
+                logger.warning(f"Could not parse start time '{start_time_local}': {e}")
+
         # Convert distance from meters to miles
         distance_m = summary_dto.get('distance', 0)
         distance_mi = round(distance_m * 0.000621371, 2) if distance_m else 0
@@ -434,6 +477,12 @@ class GarminScraper:
             "weather": self.get_weather_data(garmin_activity),
             "laps": self.get_lap_data(garmin_activity)
         }
+        
+        # Add proper start and end times for JSON-LD schema
+        if start_time_iso:
+            strava_format["startTime"] = start_time_iso
+        if end_time_iso:
+            strava_format["endTime"] = end_time_iso
         
         # Add running dynamics directly from summaryDTO (this is the enhanced data we were missing!)
         running_dynamics = {}
