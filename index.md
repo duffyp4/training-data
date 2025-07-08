@@ -9,11 +9,12 @@ weather interpolation, and Garmin wellness data in organized daily files.
 - **[Sunday, July 06, 2025](data/2025/07/06.md)** - 1 workout, 2.0 miles
 - **[Friday, July 04, 2025](data/2025/07/04.md)** - 1 workout, 3.9 miles
 - **[Wednesday, July 02, 2025](data/2025/07/02.md)** - 1 workout, 2.8 miles
+- **[Tuesday, July 01, 2025](data/2025/07/01.md)** - 1 workout, 0.3 miles
 
 
 ## Monthly Summary
 
-- **July 2025**: 4 workouts, 16.8 miles
+- **July 2025**: 5 workouts, 17.0 miles
 
 
 ## Enhanced Features
