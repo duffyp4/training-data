@@ -10,6 +10,10 @@ from datetime import datetime, timedelta
 from typing import List, Tuple, Optional
 import json
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -172,10 +176,19 @@ class WeatherInterpolator:
     def interpolate_workout_temperatures(self, 
                                        start_time: str, 
                                        end_time: str, 
-                                       num_splits: int,
+                                       splits_data: List[dict] = None,
                                        location: Optional[str] = None) -> List[float]:
         """
-        Interpolate temperatures for workout splits using historical weather data
+        Get exact temperatures at each mile completion time using historical weather data
+        
+        Args:
+            start_time: Workout start time (ISO format)
+            end_time: Workout end time (ISO format) 
+            splits_data: List of split/lap data with timing info (preferred)
+            location: GPS coordinates "lat,lon"
+        
+        Returns:
+            List of temperatures at each mile completion time
         """
         if not location:
             location = self.default_location
@@ -185,13 +198,18 @@ class WeatherInterpolator:
             start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
             end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
             
-            # Try Visual Crossing first (recommended)
+            # Try Visual Crossing first for hourly data
             weather_data = self.get_historical_weather_visual_crossing(location, start_dt, end_dt)
             
             if weather_data:
-                return self._interpolate_from_hourly_data(weather_data, start_dt, end_dt, num_splits)
+                if splits_data:
+                    # Method 1: Use actual split timing data for exact temperatures
+                    return self._get_exact_split_temperatures(weather_data, start_dt, splits_data)
+                else:
+                    # Method 2: Estimate mile completion times and get exact temps
+                    return self._get_estimated_mile_temperatures(weather_data, start_dt, end_dt)
             
-            # Fallback to OpenWeatherMap
+            # Fallback to OpenWeatherMap (less granular)
             lat, lon = map(float, location.split(','))
             start_weather = self.get_historical_weather_openweather(lat, lon, int(start_dt.timestamp()))
             end_weather = self.get_historical_weather_openweather(lat, lon, int(end_dt.timestamp()))
@@ -200,55 +218,99 @@ class WeatherInterpolator:
                 return self._linear_interpolate(
                     start_weather['temp'], 
                     end_weather['temp'], 
-                    num_splits
+                    len(splits_data) if splits_data else 8
                 )
             
-            # Final fallback - realistic estimates based on time of day
-            return self._estimate_temperatures_by_time(start_dt, end_dt, num_splits)
+            # Final fallback
+            return self._estimate_temperatures_by_time(start_dt, end_dt, len(splits_data) if splits_data else 8)
             
         except Exception as e:
-            logger.error(f"Error interpolating temperatures: {e}")
-            return self._estimate_temperatures_by_time(None, None, num_splits)
+            logger.error(f"Error getting exact temperatures: {e}")
+            return self._estimate_temperatures_by_time(None, None, len(splits_data) if splits_data else 8)
     
-    def _interpolate_from_hourly_data(self, 
-                                    weather_data: List[dict], 
-                                    start_dt: datetime, 
-                                    end_dt: datetime, 
-                                    num_splits: int) -> List[float]:
+    def _get_exact_split_temperatures(self, weather_data: List[dict], start_dt: datetime, splits_data: List[dict]) -> List[float]:
         """
-        Interpolate temperatures from hourly weather data
+        Get exact temperature at each split completion time using real split data
         """
-        # Find temperature at start and end times
-        start_temp = self._find_temperature_at_time(weather_data, start_dt)
-        end_temp = self._find_temperature_at_time(weather_data, end_dt)
+        temperatures = []
+        current_time = start_dt
         
-        return self._linear_interpolate(start_temp, end_temp, num_splits)
+        for split in splits_data:
+            # Get temperature at this exact time
+            temp = self._find_temperature_at_exact_time(weather_data, current_time)
+            temperatures.append(temp)
+            
+            # Calculate when this split was completed
+            split_duration_s = split.get('mile_time_s', 0)
+            if split_duration_s > 0:
+                current_time += timedelta(seconds=split_duration_s)
+            else:
+                # Fallback: estimate based on average pace
+                estimated_duration = 600  # 10 min/mile default
+                current_time += timedelta(seconds=estimated_duration)
+        
+        logger.info(f"Retrieved exact temperatures for {len(temperatures)} splits using real timing data")
+        return temperatures
     
-    def _find_temperature_at_time(self, weather_data: List[dict], target_time: datetime) -> float:
+    def _get_estimated_mile_temperatures(self, weather_data: List[dict], start_dt: datetime, end_dt: datetime, num_miles: int = None) -> List[float]:
         """
-        Find temperature at specific time from hourly data
+        Estimate mile completion times and get exact temperatures at those times
         """
-        target_hour = target_time.strftime('%H:00:00')
+        if not num_miles:
+            # Estimate number of miles from duration (assume 10 min/mile average)
+            duration_minutes = (end_dt - start_dt).total_seconds() / 60
+            num_miles = max(1, int(duration_minutes / 10))
+        
+        temperatures = []
+        workout_duration = end_dt - start_dt
+        
+        for mile in range(num_miles):
+            # Estimate when this mile was completed (evenly spaced for now)
+            progress = mile / (num_miles - 1) if num_miles > 1 else 0
+            mile_completion_time = start_dt + (workout_duration * progress)
+            
+            # Get exact temperature at this time
+            temp = self._find_temperature_at_exact_time(weather_data, mile_completion_time)
+            temperatures.append(temp)
+        
+        logger.info(f"Retrieved exact temperatures for {num_miles} estimated mile times")
+        return temperatures
+    
+    def _find_temperature_at_exact_time(self, weather_data: List[dict], target_time: datetime) -> float:
+        """
+        Find exact temperature at specific time using hourly weather data with interpolation
+        """
         target_date = target_time.strftime('%Y-%m-%d')
+        target_hour = target_time.hour
+        target_minute = target_time.minute
         
-        # Look for exact hour match
-        for record in weather_data:
-            if record.get('date') == target_date and record.get('datetime') == target_hour:
-                return record.get('temp', 70.0)
-        
-        # Fallback to nearest hour
-        closest_temp = 70.0
-        min_diff = float('inf')
+        # Find the hour before and after target time
+        before_temp = None
+        after_temp = None
         
         for record in weather_data:
             if record.get('date') == target_date:
-                record_time = datetime.strptime(f"{target_date} {record['datetime']}", '%Y-%m-%d %H:%M:%S')
-                diff = abs((target_time - record_time).total_seconds())
-                if diff < min_diff:
-                    min_diff = diff
-                    closest_temp = record.get('temp', 70.0)
+                record_hour = int(record['datetime'].split(':')[0])
+                
+                if record_hour == target_hour:
+                    # Exact hour match
+                    return record.get('temp', 70.0)
+                elif record_hour == target_hour - 1:
+                    # Hour before
+                    before_temp = record.get('temp', 70.0)
+                elif record_hour == target_hour + 1:
+                    # Hour after  
+                    after_temp = record.get('temp', 70.0)
         
-        return closest_temp
+        # Interpolate between hours if we have both
+        if before_temp is not None and after_temp is not None:
+            # Linear interpolation within the hour
+            progress = target_minute / 60.0  # 0.0 = start of hour, 1.0 = end of hour
+            interpolated_temp = before_temp + (after_temp - before_temp) * progress
+            return round(interpolated_temp, 1)
+        
+        # Fallback to nearest hour
+        return before_temp or after_temp or 70.0
     
     def _linear_interpolate(self, start_temp: float, end_temp: float, num_splits: int) -> List[float]:
         """
@@ -296,9 +358,16 @@ class WeatherInterpolator:
         return self._linear_interpolate(base_temp, base_temp + total_temp_change, num_splits)
 
 # Example usage function
-def get_split_temperatures(activity_data: dict, num_splits: int) -> List[float]:
+def get_split_temperatures(activity_data: dict, splits_data: List[dict] = None) -> List[float]:
     """
-    Convenience function to get split temperatures for an activity
+    Convenience function to get exact split temperatures for an activity
+    
+    Args:
+        activity_data: Activity with startTime, endTime
+        splits_data: List of split/lap data with timing information
+    
+    Returns:
+        List of exact temperatures at each split completion time
     """
     interpolator = WeatherInterpolator()
     
@@ -306,7 +375,7 @@ def get_split_temperatures(activity_data: dict, num_splits: int) -> List[float]:
     end_time = activity_data.get('endTime', '')
     location = interpolator.extract_gps_location(activity_data)
     
-    return interpolator.interpolate_workout_temperatures(start_time, end_time, num_splits, location)
+    return interpolator.interpolate_workout_temperatures(start_time, end_time, splits_data, location)
 
 if __name__ == "__main__":
     # Test the weather interpolation

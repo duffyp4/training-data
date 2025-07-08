@@ -143,44 +143,39 @@ class DataRefactor:
         
         return enhanced
     
-    def interpolate_weather(self, start_time: str, end_time: str, start_temp: float = 72.0) -> List[float]:
-        """Interpolate weather data for splits using real weather API data"""
+    def interpolate_weather(self, start_time: str, end_time: str, splits_data: List[Dict] = None, start_temp: float = 72.0) -> List[float]:
+        """Get exact temperatures at each split completion time using real weather API data"""
         try:
             # Import the weather interpolation module
             from weather_interpolation import WeatherInterpolator
             
             interpolator = WeatherInterpolator()
             
-            # Parse times to get duration and number of typical splits
-            start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
-            end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
-            duration_minutes = (end_dt - start_dt).total_seconds() / 60
-            
-            # Estimate number of splits (typically 1 split per 8-12 minutes for running)
-            estimated_splits = max(1, int(duration_minutes / 10))
-            
-            # Get real weather data
+            # Use enhanced exact temperature retrieval with splits data
             temps = interpolator.interpolate_workout_temperatures(
-                start_time, end_time, estimated_splits
+                start_time, end_time, splits_data
             )
             
-            logger.info(f"Retrieved real weather data: {temps[0]:.1f}°F - {temps[-1]:.1f}°F")
+            if splits_data:
+                logger.info(f"Retrieved exact temperatures for {len(splits_data)} splits: {temps[0]:.1f}°F - {temps[-1]:.1f}°F")
+            else:
+                logger.info(f"Retrieved estimated temperatures: {temps[0]:.1f}°F - {temps[-1]:.1f}°F")
             return temps
             
         except ImportError:
             logger.warning("Weather interpolation module not available, using fallback")
-            return self._fallback_temperature_interpolation(start_time, end_time, start_temp)
+            return self._fallback_temperature_interpolation(start_time, end_time, start_temp, len(splits_data) if splits_data else None)
         except Exception as e:
             logger.warning(f"Weather API failed, using fallback: {e}")
-            return self._fallback_temperature_interpolation(start_time, end_time, start_temp)
+            return self._fallback_temperature_interpolation(start_time, end_time, start_temp, len(splits_data) if splits_data else None)
     
-    def _fallback_temperature_interpolation(self, start_time: str, end_time: str, start_temp: float) -> List[float]:
+    def _fallback_temperature_interpolation(self, start_time: str, end_time: str, start_temp: float, num_splits: int = None) -> List[float]:
         """Fallback temperature interpolation when API is not available"""
         try:
             start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
             end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
             duration_minutes = (end_dt - start_dt).total_seconds() / 60
-            estimated_splits = max(1, int(duration_minutes / 10))
+            estimated_splits = num_splits if num_splits else max(1, int(duration_minutes / 10))
             
             # Estimate temperature change based on time of day
             start_hour = start_dt.hour
@@ -232,11 +227,25 @@ class DataRefactor:
         # Get enhanced data
         enhanced = self.enhance_with_garmin_data(activity)
         
-        # Convert laps to splits
+        # Convert laps to splits - prepare splits data first for exact temperature lookup
         splits = []
+        splits_timing_data = []
         laps = activity.get('laps', [])
-        temps = self.interpolate_weather(start_time, start_time)
         
+        # First pass: Build splits with timing data for weather interpolation
+        for i, lap in enumerate(laps[:10]):  # Limit to 10 splits
+            mile_time_s = self.parse_duration_to_seconds(lap.get('time', '0'))
+            
+            splits_timing_data.append({
+                "mile": i + 1,
+                "mile_time_s": mile_time_s
+            })
+        
+        # Get exact temperatures using split timing data
+        end_time = self.convert_iso_to_local_timezone(activity.get('endTime', ''))
+        temps = self.interpolate_weather(start_time, end_time, splits_timing_data)
+        
+        # Second pass: Build complete splits with temperatures
         for i, lap in enumerate(laps[:10]):  # Limit to 10 splits
             split = {
                 "mile": i + 1,

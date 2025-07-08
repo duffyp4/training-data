@@ -1,7 +1,7 @@
 name: Nightly Garmin Sync
 on:
   schedule:
-    - cron: '0 6 * * *' # Runs at 6 AM UTC daily (1 hour after Strava for testing)
+    - cron: '0 6 * * *' # Runs at 6 AM UTC daily
   workflow_dispatch:
     inputs:
       activity_id:
@@ -19,6 +19,7 @@ jobs:
       GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
       GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
       GARMIN_2FA: ${{ secrets.GARMIN_2FA_SECRET }}
+      VISUAL_CROSSING_API_KEY: ${{ secrets.VISUAL_CROSSING_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,12 +36,12 @@ jobs:
       - name: Run Garmin Scraper
         run: python3 scripts/garmin_scraper.py ${{ github.event.inputs.activity_id || '' }}
 
-      - name: Run Garmin Renderer
-        run: python3 scripts/garmin_renderer.py
+      - name: Run Enhanced Data Refactor
+        run: python3 scripts/data_refactor.py
 
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v9
         with:
-          message: "auto: $(date +'%Y-%m-%d') Garmin sync"
-          add: "index.md data/last_id.json"
+          message: "auto: $(date +'%Y-%m-%d') Enhanced Garmin sync with weather data"
+          add: "index.md data/ scripts/"
           default_author: github_actions 
