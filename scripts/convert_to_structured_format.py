@@ -215,9 +215,21 @@ def convert_file_to_structured_format(file_path):
         'schema': 2
     }
     
-    # Add sleep metrics (real data or message if none available)
+    # Always add sleep metrics section (even if no data available)
     if real_data['sleep_metrics']:
         structured_data['sleep_metrics'] = real_data['sleep_metrics']
+    else:
+        # Add placeholder sleep metrics section when no data available
+        structured_data['sleep_metrics'] = {
+            'sleep_minutes': None,
+            'deep_minutes': None,
+            'light_minutes': None,
+            'rem_minutes': None,
+            'awake_minutes': None,
+            'sleep_score': None,
+            'resting_hr': None,
+            'hrv_night_avg': None
+        }
     
     # Add daily metrics
     daily_metrics = {
