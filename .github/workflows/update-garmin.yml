@@ -36,6 +36,9 @@ jobs:
       - name: Run Garmin Scraper
         run: python3 scripts/garmin_scraper.py ${{ github.event.inputs.activity_id || '' }}
 
+      - name: Run Garmin Renderer
+        run: python3 scripts/garmin_renderer.py
+
       - name: Run Enhanced Data Refactor with Splits & Wellness
         run: python3 scripts/data_refactor.py
 
