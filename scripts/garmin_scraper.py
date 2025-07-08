@@ -539,10 +539,88 @@ class GarminScraper:
         return weather
 
     def get_lap_data(self, activity: Dict) -> List[Dict]:
-        """Extract lap data from Garmin activity (basic version)"""
-        # For now, return empty list - this would need activity details API call
-        # to get lap information, which we can implement if needed
-        return []
+        """Extract lap data from Garmin activity using splits endpoint"""
+        activity_id = activity.get('activityId')
+        if not activity_id:
+            return []
+        
+        try:
+            # Use the splits endpoint to get detailed lap data
+            splits_data = garth.connectapi(f"/activity-service/activity/{activity_id}/splits")
+            
+            if not splits_data or not isinstance(splits_data, dict):
+                logger.debug(f"No splits data found for activity {activity_id}")
+                return []
+            
+            # Extract lap information from the splits response
+            laps = []
+            splits_list = splits_data.get('lapDTOs', [])
+            
+            for i, split in enumerate(splits_list):
+                # Convert duration from seconds to MM:SS format
+                duration_s = split.get('movingDuration', split.get('duration', 0))
+                time_str = ""
+                if duration_s:
+                    try:
+                        duration_s = int(float(duration_s))
+                        minutes = duration_s // 60
+                        seconds = duration_s % 60
+                        time_str = f"{minutes}:{seconds:02d}"
+                    except (ValueError, TypeError):
+                        pass
+                
+                lap_data = {
+                    "lapNumber": i + 1,
+                    "distance": "",
+                    "time": time_str,
+                    "pace": "",  # Will be calculated below
+                    "elevation": "",
+                    "heartRate": f"{int(split.get('averageHR', 0))} bpm" if split.get('averageHR') else ""
+                }
+                
+                # Convert pace from speed if available
+                if split.get('averageSpeed'):
+                    try:
+                        speed_mps = float(split['averageSpeed'])
+                        # Convert m/s to pace (min/mile)
+                        if speed_mps > 0:
+                            pace_s_per_mile = 1609.34 / speed_mps  # meters per mile / speed
+                            pace_min = int(pace_s_per_mile // 60)
+                            pace_sec = int(pace_s_per_mile % 60)
+                            lap_data["pace"] = f"{pace_min}:{pace_sec:02d} /mi"
+                    except (ValueError, TypeError):
+                        pass
+                
+                # Convert distance from meters to miles
+                if split.get('distance'):
+                    try:
+                        distance_m = float(split['distance'])
+                        distance_mi = distance_m * 0.000621371
+                        lap_data["distance"] = f"{distance_mi:.2f} mi"
+                    except (ValueError, TypeError):
+                        pass
+                
+                # Convert elevation from meters to feet
+                if split.get('elevationGain'):
+                    try:
+                        elev_m = float(split['elevationGain'])
+                        elev_ft = int(elev_m * 3.28084)
+                        lap_data["elevation"] = f"{elev_ft} ft"
+                    except (ValueError, TypeError):
+                        pass
+                
+                laps.append(lap_data)
+            
+            if laps:
+                logger.info(f"Successfully extracted {len(laps)} laps for activity {activity_id}")
+            else:
+                logger.debug(f"No lap data available for activity {activity_id}")
+            
+            return laps
+            
+        except Exception as e:
+            logger.warning(f"Could not fetch lap data for activity {activity_id}: {e}")
+            return []
 
     def process_activities(self, specific_activity_id: Optional[str] = None) -> List[Dict]:
         """Main processing function with proper date filtering"""
