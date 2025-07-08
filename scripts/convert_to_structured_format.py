@@ -73,7 +73,8 @@ def get_real_sleep_wellness_data(date_str):
                 'body_battery': {
                     'charge': extract_number(wellness_data.get('bodyBattery', '')),
                     'drain': 65  # Default drain, hard to extract from Garmin
-                }
+                },
+                'dailySteps': extract_number(wellness_data.get('dailySteps', '')) # Add daily steps
             }
         else:
             result['daily_metrics'] = {'body_battery': {'charge': None, 'drain': None}}
@@ -206,8 +207,18 @@ def convert_file_to_structured_format(file_path):
     total_time = sum(w.get('moving_time_s', 0) for w in converted_workouts)
     total_elevation = sum(w.get('elev_gain_ft', 0) for w in converted_workouts)
     
-    # Estimate steps (roughly 2000 steps per mile)
-    estimated_steps = int(total_distance * 2000)
+    # Use real step data from Garmin if available, otherwise fall back to estimate
+    actual_steps = None
+    if real_data['daily_metrics'] and real_data['daily_metrics'].get('dailySteps'):
+        actual_steps = real_data['daily_metrics']['dailySteps']
+    
+    if actual_steps is None:
+        # Only use estimate as last resort if no real data available
+        estimated_steps = int(total_distance * 1900) + 7000  # workout steps + baseline
+        logger.warning(f"No real step data available for {date_str}, using estimate: {estimated_steps}")
+        actual_steps = estimated_steps
+    else:
+        logger.info(f"Using actual step data from Garmin: {actual_steps}")
     
     # Build the structured format
     structured_data = {
@@ -234,7 +245,7 @@ def convert_file_to_structured_format(file_path):
     # Add daily metrics
     daily_metrics = {
         'body_battery': real_data['daily_metrics']['body_battery'],
-        'steps': estimated_steps,
+        'steps': actual_steps,
         'total_workout_distance_mi': round(total_distance, 2),
         'total_moving_time_s': total_time,
         'total_elev_gain_ft': int(total_elevation)
@@ -270,7 +281,7 @@ def convert_file_to_structured_format(file_path):
     new_content = f"""---
 {yaml_str}---
 # {date_str} · Daily Summary
-**Totals:** {total_distance:.1f} mi • {hours} h {minutes} m • {total_elevation} ft ↑ • {estimated_steps:,} steps  
+**Totals:** {total_distance:.1f} mi • {hours} h {minutes} m • {total_elevation} ft ↑ • {actual_steps:,} steps  
 {sleep_summary}
 
 <details>

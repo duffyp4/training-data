@@ -287,6 +287,22 @@ class GarminScraper:
         try:
             wellness = {}
             
+            # Get daily step data
+            try:
+                steps_data = garth.connectapi(f"/wellness-service/wellness/dailySummaryChart/{date}")
+                if steps_data and steps_data.get('summaryList'):
+                    for summary in steps_data['summaryList']:
+                        if summary.get('summaryId') == 'steps':
+                            wellness["dailySteps"] = summary.get('value', 0)
+                            break
+                # Fallback to user summary endpoint
+                if 'dailySteps' not in wellness:
+                    user_summary = garth.connectapi(f"/usersummary-service/usersummary/daily/{date}")
+                    if user_summary and user_summary.get('totalSteps'):
+                        wellness["dailySteps"] = user_summary['totalSteps']
+            except Exception as e:
+                logger.debug(f"Could not get step data: {e}")
+            
             # Get body battery data
             try:
                 bb_data = garth.connectapi(f"/wellness-service/wellness/bodyBattery/reports/daily/{date}")
