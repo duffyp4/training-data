@@ -424,6 +424,10 @@ class EnhancedDataRefactor:
         grouped = self.group_activities_by_date(activities)
         logger.info(f"Grouped {len(activities)} activities into {len(grouped)} days")
         
+        # Detect if this is an incremental update (few activities) vs full rebuild
+        is_incremental = len(activities) <= 3
+        logger.info(f"{'Incremental' if is_incremental else 'Full'} update mode ({len(activities)} activities)")
+        
         # Create data directory structure
         self.data_dir.mkdir(exist_ok=True)
         
@@ -452,14 +456,18 @@ class EnhancedDataRefactor:
             
             logger.info(f"Created enhanced {day_file}")
         
-        # Archive original index.md
-        backup_file = Path("index.md.backup-enhanced-refactor")
-        if self.index_path.exists():
-            self.index_path.rename(backup_file)
-            logger.info(f"Archived original index.md as {backup_file}")
-        
-        # Create new enhanced index.md
-        self.create_enhanced_index(grouped)
+        # Only rebuild index.md for full rebuilds
+        if not is_incremental:
+            # Archive original index.md
+            backup_file = Path("index.md.backup-enhanced-refactor")
+            if self.index_path.exists():
+                self.index_path.rename(backup_file)
+                logger.info(f"Archived original index.md as {backup_file}")
+            
+            # Create new enhanced index.md
+            self.create_enhanced_index(grouped)
+        else:
+            logger.info("Preserving existing index.md for incremental update")
         
         logger.info("Enhanced data refactor completed successfully!")
     
