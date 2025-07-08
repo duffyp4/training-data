@@ -86,6 +86,10 @@ def generate_structured_readable(data):
     content.append("## Daily Metrics")
     daily = data.get('daily_metrics', {})
     
+    # Steps
+    if daily.get('steps'):
+        content.append(f"**Steps:** {daily['steps']:,}")
+    
     # Body Battery
     bb = daily.get('body_battery', {})
     if bb.get('charge') is not None or bb.get('drain') is not None:
@@ -96,21 +100,9 @@ def generate_structured_readable(data):
             bb_info.append(f"Drained: -{bb['drain']}")
         content.append(f"**Body Battery:** {' • '.join(bb_info)}")
     
-    # Steps and activity
-    if daily.get('steps'):
-        content.append(f"**Steps:** {daily['steps']:,}")
-    
-    # Daily totals
-    totals = []
-    if daily.get('total_workout_distance_mi'):
-        totals.append(f"{daily['total_workout_distance_mi']:.1f} mi")
-    if daily.get('total_moving_time_s'):
-        totals.append(format_time(daily['total_moving_time_s']))
-    if daily.get('total_elev_gain_ft'):
-        totals.append(f"{daily['total_elev_gain_ft']} ft ↑")
-    
-    if totals:
-        content.append(f"**Workout Totals:** {' • '.join(totals)}")
+    # Resting Heart Rate (only real Garmin data)
+    if daily.get('resting_hr') is not None:
+        content.append(f"**Resting Heart Rate:** {daily['resting_hr']} bpm")
     
     content.append("")  # Empty line
     
@@ -146,22 +138,37 @@ def generate_structured_readable(data):
             if workout.get('avg_pace_s_per_mi'):
                 content.append(f"**Average Pace:** {format_pace(workout['avg_pace_s_per_mi'])}")
             
-            # Splits
+            # Splits - organized vertically
             splits = workout.get('splits', [])
             if splits:
                 content.append("")
                 content.append("**Splits:**")
-                content.append("| Mile | Time | Pace | HR | Elev |")
-                content.append("|------|------|------|----|----- |")
                 
                 for split in splits:
                     mile = split.get('mile', '?')
-                    time = format_time(split.get('mile_time_s')) if split.get('mile_time_s') else "N/A"
-                    pace = format_pace(split.get('avg_pace_s_per_mi')) if split.get('avg_pace_s_per_mi') else "N/A"
-                    hr = format_hr_zone(split.get('avg_hr'), split.get('max_hr'))
-                    elev = f"{split.get('elev_gain_ft', 0)} ft" if split.get('elev_gain_ft') is not None else "N/A"
                     
-                    content.append(f"| {mile} | {time} | {pace} | {hr} | {elev} |")
+                    # Time formatting
+                    time_s = split.get('mile_time_s', 0)
+                    if time_s > 0:
+                        time_str = format_time(time_s)
+                    else:
+                        time_str = "N/A"
+                    
+                    # Pace formatting
+                    pace_str = format_pace(split.get('avg_pace_s_per_mi'))
+                    
+                    # Heart rate
+                    hr_str = format_hr_zone(split.get('avg_hr'), split.get('max_hr'))
+                    
+                    # Elevation
+                    elev = split.get('elev_gain_ft', 0)
+                    if elev != 0:
+                        elev_str = f"{elev:+d} ft"
+                    else:
+                        elev_str = "0 ft"
+                    
+                    # Format each mile on its own line
+                    content.append(f"**Mile {mile}:** {time_str} • {pace_str} • {hr_str} • {elev_str}")
             
             content.append("")  # Empty line between workouts
     

@@ -69,15 +69,31 @@ def get_real_sleep_wellness_data(date_str):
         
         # Process wellness data
         if wellness_data:
-            result['daily_metrics'] = {
-                'body_battery': {
-                    'charge': extract_number(wellness_data.get('bodyBattery', '')),
-                    'drain': 65  # Default drain, hard to extract from Garmin
-                },
-                'dailySteps': extract_number(wellness_data.get('dailySteps', '')) # Add daily steps
+            result = {
+                'daily_metrics': {
+                    'body_battery': {
+                        'charge': extract_number(wellness_data.get('bodyBattery', '')),
+                        'drain': 65  # Default drain, hard to extract from Garmin
+                    },
+                    'dailySteps': extract_number(wellness_data.get('dailySteps', '')) # Add daily steps
+                }
             }
+            
+            # Add resting heart rate if available (only real data)
+            if wellness_data.get('restingHeartRate'):
+                rhr_value = extract_number(wellness_data.get('restingHeartRate', ''))
+                if rhr_value:
+                    result['daily_metrics']['resting_hr'] = rhr_value
         else:
-            result['daily_metrics'] = {'body_battery': {'charge': None, 'drain': None}}
+            result = {
+                'daily_metrics': {
+                    'body_battery': {
+                        'charge': None,
+                        'drain': None
+                    },
+                    'dailySteps': None
+                }
+            }
         
         return result
         
@@ -250,6 +266,11 @@ def convert_file_to_structured_format(file_path):
         'total_moving_time_s': total_time,
         'total_elev_gain_ft': int(total_elevation)
     }
+    
+    # Add resting heart rate if available from real Garmin data
+    if real_data['daily_metrics'].get('resting_hr'):
+        daily_metrics['resting_hr'] = real_data['daily_metrics']['resting_hr']
+    
     structured_data['daily_metrics'] = daily_metrics
     
     # Add workouts
