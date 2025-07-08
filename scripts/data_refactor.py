@@ -144,19 +144,68 @@ class DataRefactor:
         return enhanced
     
     def interpolate_weather(self, start_time: str, end_time: str, start_temp: float = 72.0) -> List[float]:
-        """Interpolate weather data for splits (placeholder implementation)"""
-        # This would normally call a weather API
-        # For now, return reasonable temperature estimates
-        end_temp = start_temp + 2.0  # Assume 2-degree warming during run
-        
-        # Return temperatures for up to 10 splits
-        temps = []
-        for i in range(10):
-            progress = i / 9 if i < 9 else 1.0
-            temp = start_temp + (end_temp - start_temp) * progress
-            temps.append(round(temp, 1))
-        
-        return temps
+        """Interpolate weather data for splits using real weather API data"""
+        try:
+            # Import the weather interpolation module
+            from weather_interpolation import WeatherInterpolator
+            
+            interpolator = WeatherInterpolator()
+            
+            # Parse times to get duration and number of typical splits
+            start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+            end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+            duration_minutes = (end_dt - start_dt).total_seconds() / 60
+            
+            # Estimate number of splits (typically 1 split per 8-12 minutes for running)
+            estimated_splits = max(1, int(duration_minutes / 10))
+            
+            # Get real weather data
+            temps = interpolator.interpolate_workout_temperatures(
+                start_time, end_time, estimated_splits
+            )
+            
+            logger.info(f"Retrieved real weather data: {temps[0]:.1f}°F - {temps[-1]:.1f}°F")
+            return temps
+            
+        except ImportError:
+            logger.warning("Weather interpolation module not available, using fallback")
+            return self._fallback_temperature_interpolation(start_time, end_time, start_temp)
+        except Exception as e:
+            logger.warning(f"Weather API failed, using fallback: {e}")
+            return self._fallback_temperature_interpolation(start_time, end_time, start_temp)
+    
+    def _fallback_temperature_interpolation(self, start_time: str, end_time: str, start_temp: float) -> List[float]:
+        """Fallback temperature interpolation when API is not available"""
+        try:
+            start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+            end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+            duration_minutes = (end_dt - start_dt).total_seconds() / 60
+            estimated_splits = max(1, int(duration_minutes / 10))
+            
+            # Estimate temperature change based on time of day
+            start_hour = start_dt.hour
+            
+            if 5 <= start_hour <= 11:  # Morning - typically warming up
+                temp_change = 2.0 * (duration_minutes / 60)
+            elif 12 <= start_hour <= 17:  # Afternoon - peak heat, slow change
+                temp_change = 0.5 * (duration_minutes / 60)
+            else:  # Evening/night - cooling down
+                temp_change = -1.0 * (duration_minutes / 60)
+            
+            end_temp = start_temp + temp_change
+            
+            # Linear interpolation
+            temps = []
+            for i in range(estimated_splits):
+                progress = i / (estimated_splits - 1) if estimated_splits > 1 else 0
+                temp = start_temp + (end_temp - start_temp) * progress
+                temps.append(round(temp, 1))
+            
+            return temps
+            
+        except Exception:
+            # Ultimate fallback
+            return [start_temp + i * 0.2 for i in range(10)]
     
     def convert_activity_to_new_format(self, activity: Dict) -> Dict:
         """Convert a single activity to the new enhanced format"""
