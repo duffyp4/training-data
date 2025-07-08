@@ -478,7 +478,7 @@ weather interpolation, and Garmin wellness data in organized daily files.
         # Sort dates in reverse order (newest first)
         sorted_dates = sorted(grouped_data.keys(), reverse=True)
         
-        for date in sorted_dates[:15]:  # Show last 15 days
+        for date in sorted_dates[:25]:  # Show last 25 days
             activities = grouped_data[date]
             year, month, day = date.split('-')
             
@@ -491,6 +491,29 @@ weather interpolation, and Garmin wellness data in organized daily files.
             workout_count = len(activities)
             
             content += f"- **[{formatted_date}](data/{year}/{month}/{day:0>2}.md)** - {workout_count} workout{'s' if workout_count != 1 else ''}, {total_distance:.1f} miles\n"
+        
+        # Add monthly summary
+        monthly_summary = {}
+        for date in sorted_dates:
+            activities = grouped_data[date]
+            year_month = date[:7]  # YYYY-MM
+            if year_month not in monthly_summary:
+                monthly_summary[year_month] = {"count": 0, "distance": 0.0}
+            monthly_summary[year_month]["count"] += len(activities)
+            monthly_summary[year_month]["distance"] += sum(self.extract_numeric_value(a.get('distance', '0')) for a in activities)
+        
+        content += f"""
+
+## Monthly Summary
+
+"""
+        
+        for year_month in sorted(monthly_summary.keys(), reverse=True):
+            year, month = year_month.split('-')
+            dt = datetime.strptime(f"{year_month}-01", '%Y-%m-%d')
+            month_name = dt.strftime('%B %Y')
+            stats = monthly_summary[year_month]
+            content += f"- **{month_name}**: {stats['count']} workouts, {stats['distance']:.1f} miles\n"
         
         content += f"""
 
