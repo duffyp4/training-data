@@ -143,6 +143,7 @@ def generate_structured_readable(data):
             if splits:
                 content.append("")
                 content.append("**Splits:**")
+                content.append("")  # Extra blank line for separation
                 
                 for split in splits:
                     mile = split.get('mile', '?')
@@ -167,8 +168,9 @@ def generate_structured_readable(data):
                     else:
                         elev_str = "0 ft"
                     
-                    # Format each mile on its own line
+                    # Format each mile on its own line with proper spacing
                     content.append(f"**Mile {mile}:** {time_str} • {pace_str} • {hr_str} • {elev_str}")
+                    content.append("")  # Blank line after each mile for better separation
             
             content.append("")  # Empty line between workouts
     
