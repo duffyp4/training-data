@@ -11,6 +11,17 @@ from pathlib import Path
 from datetime import datetime
 import logging
 
+# Load environment variables from .env file manually
+def load_env_file():
+    env_file = Path('.env')
+    if env_file.exists():
+        for line in env_file.read_text().strip().split('\n'):
+            if '=' in line and not line.startswith('#'):
+                key, value = line.split('=', 1)
+                os.environ[key.strip()] = value.strip()
+
+load_env_file()
+
 # Add the scripts directory to path to import garmin_scraper
 sys.path.append(str(Path(__file__).parent))
 
@@ -22,6 +33,11 @@ def get_real_sleep_wellness_data(date_str):
     try:
         from garmin_scraper import GarminScraper
         scraper = GarminScraper()
+        
+        # Authenticate with Garmin Connect
+        if not scraper.authenticate():
+            logger.warning(f"Failed to authenticate with Garmin Connect for {date_str}")
+            return {'sleep_metrics': None, 'daily_metrics': {'body_battery': {'charge': None, 'drain': None}}}
         
         # Convert YYYY-MM-DD to the format Garmin expects
         sleep_data = scraper.get_sleep_data(date_str)
