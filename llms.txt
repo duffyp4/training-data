@@ -1,9 +1,0 @@
-# Strava Activity Feed
-
-> A machine-readable feed of personal Strava activities, updated nightly. This feed is designed for consumption by Large Language Models (LLMs) to provide context for personal fitness and training data.
-
-The primary data is located in `index.md` in this repository. Each activity is represented as a Markdown heading and a corresponding JSON-LD block conforming to the schema.org `ExerciseAction` type.
-
-## Schema and Data
-- [Activity Feed (index.md)](/index.md): The main data feed containing all scraped activities.
-- [Last Processed ID (data/last_id.json)](/data/last_id.json): Contains the `activityId` of the most recently processed activity to prevent duplicates. 

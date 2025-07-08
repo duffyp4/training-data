@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Garmin Renderer
-Converts Garmin activities to the same JSON-LD format as existing Strava data
-Maintains backward compatibility while adding enhanced data fields
+Converts Garmin activities to JSON-LD format and renders them to markdown
+Handles activity deduplication and enhanced data formatting
 """
 
 import json
@@ -264,7 +264,7 @@ class GarminRenderer:
             with open(self.activities_path, 'r') as f:
                 activities = json.load(f)
         except FileNotFoundError:
-            logger.error("activities.json not found. Did the scraper run correctly?")
+            logger.error("activities.json not found. Run the Garmin scraper first: npm run scrape-garmin")
             return
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON in activities.json: {e}")
@@ -280,7 +280,7 @@ class GarminRenderer:
         # Get existing IDs to avoid duplicates
         existing_ids = self.get_existing_ids()
         
-        # Also get existing datetime signatures for Strava->Garmin transition
+        # Also get existing datetime signatures for duplicate detection
         existing_signatures = self.get_existing_datetime_signatures()
         
         # Read existing content
@@ -302,10 +302,10 @@ class GarminRenderer:
                 potential_upgrades.append(activity)
                 continue
             
-            # Check for datetime signature duplicates (Strava->Garmin transition)
+            # Check for datetime signature duplicates
             signature = self.create_datetime_signature(activity)
             if signature and signature in existing_signatures:
-                logger.info(f"Skipping Garmin activity {activity_id} - matches existing activity by datetime signature: {signature}")
+                logger.info(f"Skipping activity {activity_id} - matches existing activity by datetime signature: {signature}")
                 skipped_duplicates.append(activity)
                 continue
             

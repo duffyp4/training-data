@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Garmin Connect Scraper
-Replaces the Strava scraper with direct API calls to Garmin Connect
-Maintains backward compatibility with existing data format
+Retrieves activity and wellness data from Garmin Connect using direct API calls
+Processes activities and saves them in standardized format
 """
 
 import json
@@ -64,27 +64,14 @@ class GarminScraper:
                     last_id = data.get("last_id")
                     last_date = data.get("last_date")
                     
-                    # Check if we're transitioning from Strava to Garmin
-                    if last_id and len(last_id) == 11 and last_id.isdigit():
-                        # This is a Strava ID - we're in transition mode
-                        logger.info(f"Detected Strava ID {last_id} - transition mode enabled")
-                        logger.info("Will use date-based filtering for first Garmin sync")
-                        return {
-                            "id": None,  # Ignore Strava ID for Garmin comparison
-                            "date": last_date,
-                            "transition_mode": True,
-                            "strava_id": last_id
-                        }
-                    
                     return {
                         "id": last_id,
-                        "date": last_date,
-                        "transition_mode": False
+                        "date": last_date
                     }
         except Exception as e:
             logger.warning(f"Could not read last_id.json: {e}")
         
-        return {"id": None, "date": None, "transition_mode": False}
+        return {"id": None, "date": None}
 
     def is_activity_newer(self, activity_date: str, last_date: Optional[str]) -> bool:
         """Check if an activity date is newer than the last processed date"""
@@ -102,12 +89,8 @@ class GarminScraper:
             
             activity_dt = datetime.strptime(activity_date_only, "%Y-%m-%d")
             
-            # Parse last date format - handle multiple possible formats
-            if ',' in last_date:
-                # Strava format: "Tue, 7/1/2025"
-                date_part = last_date.split(',')[1].strip()
-                last_dt = datetime.strptime(date_part, "%m/%d/%Y")
-            elif 'T' in last_date or (' ' in last_date and ':' in last_date):
+            # Parse last date format - handle Garmin timestamp formats
+            if 'T' in last_date or (' ' in last_date and ':' in last_date):
                 # Garmin timestamp format: "2025-07-06 14:29:18" or "2025-07-06T14:29:18"
                 last_date_only = last_date.split('T')[0].split(' ')[0]
                 last_dt = datetime.strptime(last_date_only, "%Y-%m-%d")
@@ -121,15 +104,14 @@ class GarminScraper:
             return is_newer
         except Exception as e:
             logger.warning(f"Could not parse dates for comparison: activity='{activity_date}', last='{last_date}': {e}")
-            # FIXED: Default to excluding the activity when date parsing fails (safer)
-            # This prevents processing old activities when date formats are unclear
+            # Default to excluding the activity when date parsing fails (safer)
             return False
 
     def get_activities_since_date(self, start_date: datetime) -> List[Dict]:
         """Get activities from Garmin Connect since a specific date"""
         try:
-            # Get activities from the last 30 days to ensure we catch everything
-            activities = garth.connectapi("/activitylist-service/activities/search/activities", params={"limit": 100})  # Get last 100 activities
+            # Get last 100 activities to ensure we catch everything recent
+            activities = garth.connectapi("/activitylist-service/activities/search/activities", params={"limit": 100})
             
             # Filter to only activities newer than our last processed
             new_activities = []
@@ -141,24 +123,15 @@ class GarminScraper:
                 
                 logger.debug(f"Evaluating activity {activity_id} from {activity_date}")
                 
-                # Handle transition mode vs normal mode
-                if last_processed.get("transition_mode"):
-                    # Transition mode: Use date-based filtering only, ignore ID comparison
-                    if activity_date and self.is_activity_newer(activity_date, last_processed["date"]):
-                        logger.info(f"Adding activity {activity_id} (transition mode - newer than {last_processed['date']})")
-                        new_activities.append(activity)
-                    else:
-                        logger.debug(f"Skipping activity {activity_id} (not newer than last Strava date)")
+                # Check if we've reached the last processed activity
+                if last_processed["id"] and str(activity_id) == last_processed["id"]:
+                    logger.info(f"Found last processed activity {activity_id}. Stopping.")
+                    break
+                elif activity_date and self.is_activity_newer(activity_date, last_processed["date"]):
+                    logger.info(f"Adding activity {activity_id}")
+                    new_activities.append(activity)
                 else:
-                    # Normal mode: Check Garmin ID comparison
-                    if last_processed["id"] and str(activity_id) == last_processed["id"]:
-                        logger.info(f"Found last processed Garmin activity {activity_id}. Stopping.")
-                        break
-                    elif activity_date and self.is_activity_newer(activity_date, last_processed["date"]):
-                        logger.info(f"Adding activity {activity_id} (normal mode)")
-                        new_activities.append(activity)
-                    else:
-                        logger.debug(f"Skipping activity {activity_id} (already processed)")
+                    logger.debug(f"Skipping activity {activity_id} (already processed)")
             
             logger.info(f"Found {len(new_activities)} new activities to process")
             return new_activities
@@ -355,8 +328,8 @@ class GarminScraper:
         minutes = (seconds % 3600) // 60
         return f"{hours}h {minutes}m"
 
-    def convert_garmin_to_strava_format(self, garmin_activity: Dict, enhanced_data: Optional[Dict] = None) -> Dict:
-        """Convert Garmin activity format to match existing Strava format"""
+    def convert_garmin_to_activity_format(self, garmin_activity: Dict, enhanced_data: Optional[Dict] = None) -> Dict:
+        """Convert Garmin activity format to standardized activity format"""
         
         # Extract nested data objects
         summary_dto = garmin_activity.get('summaryDTO', {})
@@ -465,7 +438,7 @@ class GarminScraper:
         # Get activity type from activityTypeDTO
         type_key = activity_type_dto.get('typeKey', 'unknown')
         
-        # Convert activity type to match Strava format
+        # Convert activity type to standard format
         if "running" in type_key.lower():
             exercise_type = "Run"
         elif "cycling" in type_key.lower():
@@ -478,8 +451,8 @@ class GarminScraper:
         # Get workout name
         workout_name = garmin_activity.get('activityName', f"{exercise_type}")
         
-        # Base activity data in Strava format
-        strava_format = {
+        # Base activity data in standard format
+        activity_format = {
             "activityId": str(garmin_activity.get('activityId', '')),
             "sport": exercise_type,
             "date": formatted_date,
@@ -496,11 +469,11 @@ class GarminScraper:
         
         # Add proper start and end times for JSON-LD schema
         if start_time_iso:
-            strava_format["startTime"] = start_time_iso
+            activity_format["startTime"] = start_time_iso
         if end_time_iso:
-            strava_format["endTime"] = end_time_iso
+            activity_format["endTime"] = end_time_iso
         
-        # Add running dynamics directly from summaryDTO (this is the enhanced data we were missing!)
+        # Add running dynamics directly from summaryDTO
         running_dynamics = {}
         
         if summary_dto.get('averageRunCadence'):
@@ -525,17 +498,17 @@ class GarminScraper:
             running_dynamics["avgPower"] = f"{int(summary_dto['averagePower'])} W"
         
         if running_dynamics:
-            strava_format["runningDynamics"] = running_dynamics
+            activity_format["runningDynamics"] = running_dynamics
         
-        # Add enhanced data if available (from FIT file parsing, when we get that working)
+        # Add enhanced data if available (from FIT file parsing)
         if enhanced_data:
             if enhanced_data.get("runningDynamics"):
                 # Merge with existing running dynamics
-                if "runningDynamics" not in strava_format:
-                    strava_format["runningDynamics"] = {}
-                strava_format["runningDynamics"].update(enhanced_data["runningDynamics"])
+                if "runningDynamics" not in activity_format:
+                    activity_format["runningDynamics"] = {}
+                activity_format["runningDynamics"].update(enhanced_data["runningDynamics"])
         
-        return strava_format
+        return activity_format
 
     def get_weather_data(self, activity: Dict) -> Dict:
         """Extract weather data from Garmin activity"""
@@ -650,7 +623,7 @@ class GarminScraper:
             try:
                 activity = garth.connectapi(f"/activity-service/activity/{specific_activity_id}")
                 if activity:
-                    converted = self.convert_garmin_to_strava_format(activity)
+                    converted = self.convert_garmin_to_activity_format(activity)
                     return [converted]
             except Exception as e:
                 logger.error(f"Error processing activity {specific_activity_id}: {e}")
@@ -695,7 +668,7 @@ class GarminScraper:
                         should_process = True
                         logger.info(f"Will process activity {activity_id} (transition mode - newer than {last_processed['date']})")
                     else:
-                        logger.info(f"Skipping activity {activity_id} (not newer than last Strava date {last_processed['date']})")
+                        logger.info(f"Skipping activity {activity_id} (not newer than last processed date {last_processed['date']})")
                 else:
                     # Normal mode: Check Garmin ID comparison
                     if last_processed["id"] and str(activity_id) == last_processed["id"]:
@@ -720,8 +693,8 @@ class GarminScraper:
                     logger.warning(f"Error getting detailed activity data for {activity_id}: {e}")
                     detailed_activity = activity
                 
-                # Convert to Strava format
-                converted = self.convert_garmin_to_strava_format(detailed_activity)
+                # Convert to standard activity format
+                converted = self.convert_garmin_to_activity_format(detailed_activity)
                 
                 # Temporarily disable FIT file download until we resolve API issues
                 # logger.info(f"Downloading FIT file for activity {activity_id}")
