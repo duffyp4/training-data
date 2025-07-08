@@ -1,7 +1,64 @@
-# Training Data - Enhanced Daily Files
+# Training Data
 
-This repository contains comprehensive training data with detailed per-split metrics, 
-weather interpolation, and Garmin wellness data in organized daily files.
+This repository contains comprehensive training data with detailed per-split metrics, workout data, and wellness information in structured daily files.
+
+## Data Structure for AI Navigation
+
+Each daily file follows this structured format:
+
+```yaml
+---
+date: 2025-07-07
+schema: 2
+
+sleep_metrics:
+  sleep_minutes: 412
+  deep_minutes: 92
+  light_minutes: 246
+  rem_minutes: 94
+  awake_minutes: 30
+  sleep_score: 82
+  resting_hr: 53
+  hrv_night_avg: 46
+
+daily_metrics:
+  body_battery:
+    charge: 52
+    drain: 65
+  steps: 10234
+  total_workout_distance_mi: 5.60
+  total_moving_time_s: 3600
+  total_elev_gain_ft: 150
+
+workout_metrics:
+  - id: 987654321
+    type: Run
+    start: "2025-07-07T06:00:00-05:00"
+    distance_mi: 2.83
+    moving_time_s: 1483
+    elev_gain_ft: 33
+    avg_hr: 158
+    max_hr: 169
+    avg_pace_s_per_mi: 740
+    splits:
+      - mile: 1
+        avg_hr: 158
+        max_hr: 163
+        avg_pace_s_per_mi: 740
+        mile_time_s: 740
+        elev_gain_ft: 8
+---
+# 2025-07-07 · Daily Summary
+**Totals:** 5.6 mi • 1 h 0 m • 150 ft ↑ • 10,234 steps
+**Sleep:** 6 h 52 m (Score 82) • Rest HR 53 bpm • HRV 46 ms • BB +52/–65
+
+<details>
+<summary>Full JSON</summary>
+```json
+{ ... full JSON data ... }
+```
+</details>
+```
 
 ## Recent Activities
 
@@ -15,15 +72,8 @@ weather interpolation, and Garmin wellness data in organized daily files.
 - **[Thursday, June 26, 2025](data/2025/06/26.md)** - 1 workout, 2.0 miles
 - **[Wednesday, June 25, 2025](data/2025/06/25.md)** - 1 workout, 3.0 miles
 - **[Tuesday, June 24, 2025](data/2025/06/24.md)** - 2 workouts, 3.7 miles
-- **[Monday, June 23, 2025](data/2025/06/23.md)** - 1 workout, 2.0 miles
-- **[Saturday, June 21, 2025](data/2025/06/21.md)** - 1 workout, 2.8 miles
-- **[Friday, June 20, 2025](data/2025/06/20.md)** - 1 workout, 6.0 miles
-- **[Sunday, June 15, 2025](data/2025/06/15.md)** - 1 workout, 2.2 miles
-- **[Saturday, June 14, 2025](data/2025/06/14.md)** - 1 workout, 5.0 miles
-- **[Friday, June 13, 2025](data/2025/06/13.md)** - 1 workout, 2.3 miles
-- **[Wednesday, June 11, 2025](data/2025/06/11.md)** - 1 workout, 2.4 miles
-- **[Tuesday, June 10, 2025](data/2025/06/10.md)** - 1 workout, 2.9 miles
-- **[Monday, June 09, 2025](data/2025/06/09.md)** - 1 workout, 1.8 miles
 
-## Browse Historical Data
+## Data Index
+
+The complete dataset is available via [data/index.json](data/index.json) containing all 43 daily training files from March through July 2025, organized by date with metadata for programmatic access.
 
