@@ -424,9 +424,14 @@ class EnhancedDataRefactor:
         grouped = self.group_activities_by_date(activities)
         logger.info(f"Grouped {len(activities)} activities into {len(grouped)} days")
         
-        # Detect if this is an incremental update (few activities) vs full rebuild
-        is_incremental = len(activities) <= 3
-        logger.info(f"{'Incremental' if is_incremental else 'Full'} update mode ({len(activities)} activities)")
+        # Detect if this is an incremental update vs full rebuild
+        # Check if we have substantial historical data already (40+ files means this isn't a fresh start)
+        existing_files = list(self.data_dir.rglob("*.md"))
+        has_historical_data = len([f for f in existing_files if f.name != "README.md"]) > 35
+        
+        # Incremental if: small activity count OR we have substantial historical data
+        is_incremental = len(activities) <= 3 or (has_historical_data and len(activities) <= 10)
+        logger.info(f"{'Incremental' if is_incremental else 'Full'} update mode ({len(activities)} activities, {len(existing_files)} existing files)")
         
         # Create data directory structure
         self.data_dir.mkdir(exist_ok=True)
