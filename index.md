@@ -6,9 +6,6 @@ weather interpolation, and Garmin wellness data in organized daily files.
 ## Recent Activities
 
 - **[Monday, July 07, 2025](data/2025/07/07.md)** - 1 workout, 8.0 miles
-- **[Sunday, July 06, 2025](data/2025/07/06.md)** - 1 workout, 2.1 miles
-- **[Friday, July 04, 2025](data/2025/07/04.md)** - 1 workout, 3.9 miles
-- **[Wednesday, July 02, 2025](data/2025/07/02.md)** - 1 workout, 2.8 miles
 - **[Tuesday, July 01, 2025](data/2025/07/01.md)** - 1 workout, 0.3 miles
 - **[Sunday, June 29, 2025](data/2025/06/29.md)** - 1 workout, 3.5 miles
 - **[Saturday, June 28, 2025](data/2025/06/28.md)** - 1 workout, 7.0 miles
@@ -28,7 +25,7 @@ weather interpolation, and Garmin wellness data in organized daily files.
 ## Browse Historical Data
 
 ### 📅 By Month
-- **[July 2025](data/2025/07/)** - 5 workouts, 17.1 miles
+- **[July 2025](data/2025/07/)** - 2 workouts, 8.3 miles
 - **[June 2025](data/2025/06/)** - 19 workouts, 46.8 miles  
 - **[May 2025](data/2025/05/)** - 6 workouts, 13.7 miles
 - **[April 2025](data/2025/04/)** - 7 workouts, 18.1 miles
@@ -41,7 +38,7 @@ data/2025/
 ├── 04/ → April (7 activities: 02, 06, 08, 12, 14, 24, 30)
 ├── 05/ → May (6 activities: 04, 06, 07, 19, 27, 29)
 ├── 06/ → June (17 activities: 02, 03, 07, 09, 10, 11, 13, 14, 15, 20, 21, 23, 24, 25, 26, 28, 29)
-└── 07/ → July (5 activities: 01, 02, 04, 06, 07)
+└── 07/ → July (2 activities: 01, 07)
 ```
 
 ### 🚀 Quick Links
