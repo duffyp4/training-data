@@ -39,12 +39,9 @@ jobs:
       - name: Run Garmin Renderer
         run: python3 scripts/garmin_renderer.py
 
-      - name: Run Enhanced Data Refactor with Splits & Wellness
-        run: python3 scripts/data_refactor.py
-
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v9
         with:
-          message: "auto: $(date +'%Y-%m-%d') Enhanced Garmin sync with weather data"
-          add: "index.md data/ scripts/"
+          message: "auto: $(date +'%Y-%m-%d') Garmin data sync"
+          add: "index.md data/"
           default_author: github_actions 

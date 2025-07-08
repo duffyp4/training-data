@@ -1,28 +1,10 @@
 {
-  "name": "strava-llm-feed",
+  "name": "training-data",
   "version": "1.0.0",
-  "description": "Nightly scraper for Strava activities to create an LLM-friendly feed.",
-  "type": "module",
-  "main": "dist/render-feed.js",
+  "description": "Garmin Connect training data scraper and renderer for comprehensive daily training files.",
   "scripts": {
-    "create-context": "tsx scripts/create-context.ts",
-    "scrape": "tsx scripts/scrape-strava.ts",
-    "render": "tsx scripts/render-feed.ts",
     "scrape-garmin": "python3 scripts/garmin_scraper.py",
     "render-garmin": "python3 scripts/garmin_renderer.py",
-    "build": "tsc",
-    "postinstall": "playwright install chromium"
-  },
-  "dependencies": {
-    "@browserbasehq/stagehand": "^2.2.1",
-    "dotenv": "^16.4.7",
-    "zod": "^3.24.3"
-  },
-  "devDependencies": {
-    "@browserbasehq/sdk": "^2.6.0",
-    "@types/node": "^22.5.5",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2",
-    "playwright": "^1.45.2"
+    "fix-data": "python3 scripts/fix_data_consistency.py"
   }
 } 
