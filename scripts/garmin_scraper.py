@@ -280,10 +280,21 @@ class GarminScraper:
             try:
                 bb_data = garth.connectapi(f"/wellness-service/wellness/bodyBattery/reports/daily/{date}")
                 if bb_data and bb_data.get('bodyBatteryValuesArray'):
-                    # Get the charged value (end of day battery level)
+                    # Calculate charge and drain from the battery values
                     values = bb_data['bodyBatteryValuesArray']
                     if values:
-                        wellness["bodyBattery"] = values[-1].get('charged')
+                        first_val = values[0].get('charged', 0)
+                        last_val = values[-1].get('charged', 0)
+                        if last_val > first_val:
+                            wellness["bodyBattery"] = {
+                                "charge": last_val - first_val,
+                                "drain": 0
+                            }
+                        else:
+                            wellness["bodyBattery"] = {
+                                "charge": 0,
+                                "drain": first_val - last_val
+                            }
             except Exception as e:
                 logger.debug(f"Could not get body battery data: {e}")
             
@@ -299,7 +310,7 @@ class GarminScraper:
             try:
                 rhr_data = garth.connectapi(f"/wellness-service/wellness/dailyHeartRate/{date}")
                 if rhr_data and rhr_data.get('restingHeartRate'):
-                    wellness["restingHeartRate"] = f"{rhr_data['restingHeartRate']} bpm"
+                    wellness["restingHeartRate"] = rhr_data['restingHeartRate']
             except Exception as e:
                 logger.debug(f"Could not get resting heart rate: {e}")
             
@@ -307,9 +318,32 @@ class GarminScraper:
             try:
                 hrv_data = garth.connectapi(f"/hrv-service/hrv/{date}")
                 if hrv_data and hrv_data.get('hrvSummary', {}).get('weeklyAvg'):
-                    wellness["hrv"] = f"{hrv_data['hrvSummary']['weeklyAvg']} ms"
+                    wellness["hrv"] = hrv_data['hrvSummary']['weeklyAvg']
             except Exception as e:
                 logger.debug(f"Could not get HRV data: {e}")
+
+            # Get self-evaluation data (how did you feel, perceived effort)
+            try:
+                eval_data = garth.connectapi(f"/wellness-service/wellness/dailyStress/{date}")
+                if eval_data:
+                    wellness["selfEvaluation"] = {}
+                    # Garmin stores subjective wellness data in various endpoints
+                    if eval_data.get('overallStressLevel'):
+                        wellness["selfEvaluation"]["perceivedStress"] = eval_data['overallStressLevel']
+                    
+                    # Try to get wellness questionnaire data
+                    try:
+                        questionnaire_data = garth.connectapi(f"/wellness-service/wellness/dailyQuestionnaire/{date}")
+                        if questionnaire_data:
+                            if questionnaire_data.get('wellnessOverallFeeling'):
+                                wellness["selfEvaluation"]["howDidYouFeel"] = questionnaire_data['wellnessOverallFeeling']
+                            if questionnaire_data.get('wellnessEffortLevel'): 
+                                wellness["selfEvaluation"]["perceivedEffort"] = questionnaire_data['wellnessEffortLevel']
+                    except Exception as e:
+                        logger.debug(f"Could not get questionnaire data: {e}")
+                        
+            except Exception as e:
+                logger.debug(f"Could not get self-evaluation data: {e}")
             
             if wellness:
                 logger.info(f"Successfully retrieved wellness data for {date}")
@@ -564,7 +598,8 @@ class GarminScraper:
                     "time": time_str,
                     "pace": "",  # Will be calculated below
                     "elevation": "",
-                    "heartRate": f"{int(split.get('averageHR', 0))} bpm" if split.get('averageHR') else ""
+                    "heartRate": f"{int(split.get('averageHR', 0))} bpm" if split.get('averageHR') else "",
+                    "stepType": self.determine_step_type(split)  # Add step type analysis
                 }
                 
                 # Convert pace from speed if available
@@ -610,6 +645,59 @@ class GarminScraper:
         except Exception as e:
             logger.warning(f"Could not fetch lap data for activity {activity_id}: {e}")
             return []
+
+    def determine_step_type(self, split_data: Dict) -> str:
+        """Determine step type based on pace and cadence data"""
+        try:
+            # Get pace from speed
+            speed_mps = split_data.get('averageSpeed', 0)
+            if speed_mps > 0:
+                pace_s_per_mile = 1609.34 / speed_mps
+                pace_min_per_mile = pace_s_per_mile / 60
+                
+                # Classify based on pace (rough guidelines)
+                if pace_min_per_mile < 6:
+                    return "Sprint"
+                elif pace_min_per_mile < 7:
+                    return "Fast"
+                elif pace_min_per_mile < 9:
+                    return "Tempo"
+                elif pace_min_per_mile < 11:
+                    return "Easy"
+                else:
+                    return "Recovery"
+            
+            return "Unknown"
+        except Exception:
+            return "Unknown"
+
+    def get_heart_rate_zones(self, activity: Dict) -> Optional[Dict]:
+        """Get heart rate zone distribution for an activity"""
+        activity_id = activity.get('activityId')
+        if not activity_id:
+            return None
+            
+        try:
+            # Get detailed activity data including HR zones
+            hr_data = garth.connectapi(f"/activity-service/activity/{activity_id}/hrTimeInZones")
+            
+            if hr_data and hr_data.get('hrZones'):
+                zones = {}
+                for i, zone in enumerate(hr_data['hrZones'], 1):
+                    time_seconds = zone.get('timeInZone', 0)
+                    if time_seconds > 0:
+                        minutes = time_seconds // 60
+                        seconds = time_seconds % 60
+                        zones[f"zone{i}"] = f"{minutes}:{seconds:02d}"
+                
+                if zones:
+                    logger.info(f"Successfully retrieved HR zones for activity {activity_id}")
+                    return zones
+                    
+        except Exception as e:
+            logger.debug(f"Could not get HR zones for activity {activity_id}: {e}")
+            
+        return None
 
     def process_activities(self, specific_activity_id: Optional[str] = None) -> List[Dict]:
         """Main processing function with proper date filtering"""
@@ -718,6 +806,13 @@ class GarminScraper:
                     if wellness_data:
                         converted["wellness"] = wellness_data
                         logger.info(f"Added wellness data for {activity_date}")
+
+                # Get heart rate zones for the activity
+                logger.info(f"Getting heart rate zones for activity {activity_id}")
+                hr_zones = self.get_heart_rate_zones(activity)
+                if hr_zones:
+                    converted["timeInHRZones"] = hr_zones
+                    logger.info(f"Added HR zones for activity {activity_id}")
                 
                 logger.info(f"Successfully processed activity {activity_id} with enhanced data")
                 processed_activities.append(converted)
