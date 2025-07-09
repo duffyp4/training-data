@@ -42,6 +42,9 @@ jobs:
       - name: Add Structured Human-Readable Formatting
         run: python3 scripts/add_structured_human_readable.py
 
+      - name: Generate Updated Index
+        run: python3 scripts/generate_index.py
+
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v9
         with:
