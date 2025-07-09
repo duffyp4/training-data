@@ -112,10 +112,9 @@ class GarminScraper:
     def download_fit_file(self, activity_id: int) -> Optional[bytes]:
         """Download FIT file for an activity"""
         try:
-            # Use garth's session directly for authenticated requests
-            response = garth.http(
-                method="GET",
-                url=f"https://connectapi.garmin.com/download-service/files/activity/{activity_id}"
+            # Use garth's underlying authenticated session
+            response = garth.client.session.get(
+                f"https://connectapi.garmin.com/download-service/files/activity/{activity_id}"
             )
             
             if response.status_code == 200 and response.content:
