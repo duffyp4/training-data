@@ -88,10 +88,25 @@ class DataConsistencyFixer:
             
         try:
             import io
-            # Use garth's underlying authenticated session  
-            response = garth.client.session.get(
-                f"https://connectapi.garmin.com/download-service/files/activity/{activity_id}"
-            )
+            import requests
+            
+            # Use the same approach as the main scraper for authenticated requests
+            session = getattr(garth.client, '_session', None) or getattr(garth.client, 'session', None)
+            
+            if session:
+                response = session.get(
+                    f"https://connectapi.garmin.com/download-service/files/activity/{activity_id}"
+                )
+            else:
+                # Fallback: build request manually with OAuth token
+                headers = {
+                    'Authorization': f'Bearer {garth.client.oauth2_token.token}',
+                    'Accept': 'application/octet-stream'
+                }
+                response = requests.get(
+                    f"https://connectapi.garmin.com/download-service/files/activity/{activity_id}",
+                    headers=headers
+                )
             
             if response.status_code == 200 and response.content:
                 logger.info(f"Successfully downloaded FIT file for activity {activity_id}")
