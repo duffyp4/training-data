@@ -29,6 +29,24 @@ except ImportError as e:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Add debug flag for enhanced logging
+DEBUG_API_RESPONSES = True
+
+def log_api_response(endpoint: str, response_data: Any, activity_id: str = None):
+    """Log complete API responses for debugging"""
+    if DEBUG_API_RESPONSES:
+        prefix = f"[{activity_id}]" if activity_id else ""
+        logger.info(f"{prefix} API Response for {endpoint}:")
+        try:
+            # Pretty print JSON responses
+            if isinstance(response_data, dict):
+                logger.info(json.dumps(response_data, indent=2, default=str)[:2000] + "..." if len(str(response_data)) > 2000 else json.dumps(response_data, indent=2, default=str))
+            else:
+                logger.info(f"Non-dict response: {type(response_data)} - {str(response_data)[:500]}")
+        except Exception as e:
+            logger.warning(f"Could not log response: {e}")
+        logger.info("-" * 80)
+
 class GarminScraper:
     def __init__(self):
         self.client = None
@@ -377,8 +395,10 @@ class GarminScraper:
             # Get resting heart rate
             try:
                 rhr_data = garth.connectapi(f"/wellness-service/wellness/dailyHeartRate/{date}")
-                if rhr_data and rhr_data.get('restingHeartRate'):
-                    wellness["restingHeartRate"] = rhr_data['restingHeartRate']
+                if rhr_data:
+                    log_api_response(f"/wellness-service/wellness/dailyHeartRate/{date}", rhr_data, date)
+                    if rhr_data.get('restingHeartRate'):
+                        wellness["restingHeartRate"] = rhr_data['restingHeartRate']
             except Exception as e:
                 logger.debug(f"Could not get resting heart rate: {e}")
             
@@ -632,7 +652,9 @@ class GarminScraper:
             # Use the splits endpoint to get detailed lap data
             splits_data = garth.connectapi(f"/activity-service/activity/{activity_id}/splits")
             
-            if not splits_data or not isinstance(splits_data, dict):
+            if splits_data and isinstance(splits_data, dict):
+                log_api_response(f"/activity-service/activity/{activity_id}/splits", splits_data, str(activity_id))
+            else:
                 logger.debug(f"No splits data found for activity {activity_id}")
                 return []
             
@@ -782,7 +804,9 @@ class GarminScraper:
                 # Get detailed activity data
                 try:
                     detailed_activity = garth.connectapi(f"/activity-service/activity/{activity_id}")
-                    if not detailed_activity:
+                    if detailed_activity:
+                        log_api_response(f"/activity-service/activity/{activity_id}", detailed_activity, str(activity_id))
+                    else:
                         logger.warning(f"Could not get detailed data for activity {activity_id}")
                         detailed_activity = activity
                 except Exception as e:
