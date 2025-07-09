@@ -88,10 +88,10 @@ class DataConsistencyFixer:
             
         try:
             import io
-            response = requests.get(
-                f"https://connectapi.garmin.com/download-service/files/activity/{activity_id}",
-                headers=garth.client.request_headers(),
-                cookies=garth.client.session.cookies
+            # Use garth's session directly for authenticated requests
+            response = garth.http(
+                method="GET",
+                url=f"https://connectapi.garmin.com/download-service/files/activity/{activity_id}"
             )
             
             if response.status_code == 200 and response.content:
