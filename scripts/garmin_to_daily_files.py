@@ -403,7 +403,7 @@ class GarminToDailyFiles:
         if daily.get('steps'):
             content.append(f"**Steps:** {daily['steps']:,}")
         
-        # Body Battery
+        # Body Battery (corrected path)
         bb = daily.get('body_battery', {})
         if bb.get('charge') is not None or bb.get('drain') is not None:
             bb_info = []
