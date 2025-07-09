@@ -39,9 +39,6 @@ jobs:
       - name: Run Garmin to Daily Files Converter
         run: python3 scripts/garmin_to_daily_files.py
 
-      - name: Add Structured Human-Readable Formatting
-        run: python3 scripts/add_structured_human_readable.py
-
       - name: Generate Updated Index
         run: python3 scripts/generate_index.py
 
