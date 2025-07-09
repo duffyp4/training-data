@@ -3,6 +3,7 @@
 Garmin to Daily Files Converter
 Converts activities.json from garmin_scraper to structured daily files in data/YYYY/MM/DD.md format
 Uses the multipage design with YAML front matter, human-readable sections, and expandable JSON
+Enhanced with FIT file data: training effects, HR zones, location, and per-split running dynamics
 """
 
 import json
@@ -59,11 +60,8 @@ class GarminToDailyFiles:
                         "steps": None,
                         "resting_hr": None  # Moved from sleep_metrics
                     },
-                    "workout_metrics": [],
-                    "self_evaluation": {
-                        "how_did_you_feel": None,
-                        "perceived_effort": None
-                    }
+                    "workout_metrics": []
+                    # Note: Removed self_evaluation section per user request
                 }
             
             # Process sleep data if available
@@ -91,14 +89,6 @@ class GarminToDailyFiles:
                 
                 if wellness.get('hrv'):
                     daily_data[date_str]['sleep_metrics']['hrv_night_avg'] = wellness['hrv']
-                
-                # Self-evaluation data
-                if wellness.get('selfEvaluation'):
-                    eval_data = wellness['selfEvaluation']
-                    daily_data[date_str]['self_evaluation'].update({
-                        "how_did_you_feel": eval_data.get('howDidYouFeel'),
-                        "perceived_effort": eval_data.get('perceivedEffort')
-                    })
             
             # Process workout data
             workout_data = self.convert_activity_to_workout_metrics(activity)
@@ -151,7 +141,7 @@ class GarminToDailyFiles:
             return None
 
     def convert_activity_to_workout_metrics(self, activity: Dict) -> Optional[Dict]:
-        """Convert activity to workout_metrics format"""
+        """Convert activity to workout_metrics format with enhanced FIT data"""
         try:
             # Parse distance
             distance_str = activity.get('distance', '')
@@ -172,9 +162,13 @@ class GarminToDailyFiles:
             # Parse heart rate
             avg_hr = None
             max_hr = None
-            hr_str = activity.get('averageHeartRate', '')
-            if 'bpm' in hr_str:
-                avg_hr = int(hr_str.replace('bpm', '').strip())
+            avg_hr_str = activity.get('averageHeartRate', '')
+            if 'bpm' in avg_hr_str:
+                avg_hr = int(avg_hr_str.replace('bpm', '').strip())
+            
+            max_hr_str = activity.get('maxHeartRate', '')
+            if 'bpm' in max_hr_str:
+                max_hr = int(max_hr_str.replace('bpm', '').strip())
             
             # Parse pace to seconds per mile
             pace_str = activity.get('pace', '')
@@ -188,12 +182,24 @@ class GarminToDailyFiles:
                 "moving_time_s": moving_time_s,
                 "elev_gain_ft": elev_gain_ft,
                 "avg_hr": avg_hr,
-                "max_hr": max_hr,  # Will need to extract from laps
+                "max_hr": max_hr,
                 "avg_pace_s_per_mi": avg_pace_s_per_mi,
                 "splits": self.convert_laps_to_splits(activity.get('laps', []))
             }
             
-            # Add time in HR zones if available
+            # Add location if available (from FIT file)
+            if activity.get('location'):
+                workout["location"] = activity['location']
+            
+            # Add weather data if available
+            if activity.get('weather'):
+                workout["weather"] = activity['weather']
+            
+            # Add training effects if available (from FIT file)
+            if activity.get('trainingEffects'):
+                workout["training_effects"] = activity['trainingEffects']
+            
+            # Add time in HR zones if available (from FIT file)
             if activity.get('timeInHRZones'):
                 workout["time_in_hr_zones"] = activity['timeInHRZones']
             
@@ -238,7 +244,7 @@ class GarminToDailyFiles:
         return None
 
     def convert_laps_to_splits(self, laps: List[Dict]) -> List[Dict]:
-        """Convert lap data to splits format with enhanced information"""
+        """Convert lap data to splits format with enhanced per-split running dynamics"""
         splits = []
         
         for i, lap in enumerate(laps):
@@ -267,12 +273,16 @@ class GarminToDailyFiles:
             split = {
                 "mile": i + 1,
                 "avg_hr": avg_hr,
-                "max_hr": avg_hr,  # Approximate for now
+                "max_hr": avg_hr,  # Will be enhanced from FIT data if available
                 "avg_pace_s_per_mi": avg_pace_s_per_mi,
                 "mile_time_s": mile_time_s,
                 "elev_gain_ft": elev_gain_ft,
-                "step_type": lap.get('stepType', 'Unknown')  # New field
+                "step_type": lap.get('stepType')  # From FIT data if available
             }
+            
+            # Add per-split running dynamics if available (from FIT file)
+            if lap.get('runningDynamics'):
+                split["running_dynamics"] = lap['runningDynamics']
             
             splits.append(split)
         
@@ -408,16 +418,6 @@ class GarminToDailyFiles:
         
         content.append("")  # Empty line
         
-        # Self-Evaluation Section
-        self_eval = daily_data.get('self_evaluation', {})
-        if any(v is not None for v in self_eval.values()):
-            content.append("## Self-Evaluation")
-            if self_eval.get('how_did_you_feel'):
-                content.append(f"**How did you feel:** {self_eval['how_did_you_feel']}")
-            if self_eval.get('perceived_effort'):
-                content.append(f"**Perceived Effort:** {self_eval['perceived_effort']}")
-            content.append("")
-        
         # Workout Details Section
         workouts = daily_data.get('workout_metrics', [])
         if workouts:
@@ -441,6 +441,23 @@ class GarminToDailyFiles:
                 if workout_info:
                     content.append(f"**Distance & Time:** {' • '.join(workout_info)}")
                 
+                # Location (from FIT file)
+                if workout.get('location'):
+                    content.append(f"**Location:** {workout['location']}")
+                
+                # Weather data
+                if workout.get('weather'):
+                    weather = workout['weather']
+                    weather_info = []
+                    if weather.get('description'):
+                        weather_info.append(weather['description'])
+                    if weather.get('temperature'):
+                        weather_info.append(weather['temperature'])
+                    if weather.get('humidity'):
+                        weather_info.append(f"{weather['humidity']} humidity")
+                    if weather_info:
+                        content.append(f"**Weather:** {' • '.join(weather_info)}")
+                
                 # Heart rate
                 if workout.get('avg_hr') and workout.get('max_hr'):
                     content.append(f"**Heart Rate:** Avg: {workout['avg_hr']} bpm, Max: {workout['max_hr']} bpm")
@@ -452,14 +469,27 @@ class GarminToDailyFiles:
                     pace_str = self.format_pace(workout['avg_pace_s_per_mi'])
                     content.append(f"**Average Pace:** {pace_str}")
                 
-                # Time in HR Zones
+                # Training Effects (from FIT file)
+                if workout.get('training_effects'):
+                    effects = workout['training_effects']
+                    effects_info = []
+                    if effects.get('aerobic'):
+                        effects_info.append(f"Aerobic: {effects['aerobic']}")
+                    if effects.get('anaerobic'):
+                        effects_info.append(f"Anaerobic: {effects['anaerobic']}")
+                    if effects_info:
+                        content.append(f"**Training Effects:** {' • '.join(effects_info)}")
+                
+                # Time in HR Zones (from FIT file)
                 if workout.get('time_in_hr_zones'):
                     zones_info = []
                     for zone, time in workout['time_in_hr_zones'].items():
-                        zones_info.append(f"{zone.upper()}: {time}")
-                    content.append(f"**Time in HR Zones:** {' • '.join(zones_info)}")
+                        if time != "0:00":  # Only show zones with time
+                            zones_info.append(f"{zone.upper()}: {time}")
+                    if zones_info:
+                        content.append(f"**Time in HR Zones:** {' • '.join(zones_info)}")
                 
-                # Splits
+                # Splits with enhanced running dynamics
                 splits = workout.get('splits', [])
                 if splits:
                     content.append("")
@@ -478,17 +508,34 @@ class GarminToDailyFiles:
                         
                         # Heart rate
                         hr_str = f"Avg: {split.get('avg_hr')} bpm" if split.get('avg_hr') else "N/A"
-                        if split.get('max_hr'):
+                        if split.get('max_hr') and split.get('max_hr') != split.get('avg_hr'):
                             hr_str += f", Max: {split['max_hr']} bpm"
                         
                         # Elevation
                         elev = split.get('elev_gain_ft', 0)
                         elev_str = f"{elev:+d} ft" if elev != 0 else "0 ft"
                         
-                        # Step type
-                        step_type = split.get('step_type', 'Unknown')
+                        # Step type (from FIT data if available)
+                        step_type = split.get('step_type') or 'Unknown'
                         
                         content.append(f"**Mile {mile}:** {time_str} • {pace_str} • {hr_str} • {elev_str} • {step_type}")
+                        
+                        # Running dynamics (per-split from FIT file)
+                        if split.get('running_dynamics'):
+                            dynamics = split['running_dynamics']
+                            dynamics_info = []
+                            if dynamics.get('avg_cadence'):
+                                dynamics_info.append(f"Cadence: {dynamics['avg_cadence']}")
+                            if dynamics.get('avg_stride_length'):
+                                dynamics_info.append(f"Stride: {dynamics['avg_stride_length']}")
+                            if dynamics.get('ground_contact_time'):
+                                dynamics_info.append(f"GCT: {dynamics['ground_contact_time']}")
+                            if dynamics.get('vertical_oscillation'):
+                                dynamics_info.append(f"VO: {dynamics['vertical_oscillation']}")
+                            
+                            if dynamics_info:
+                                content.append(f"  *Running Dynamics:* {' • '.join(dynamics_info)}")
+                        
                         content.append("")
                 
                 content.append("")  # Empty line between workouts

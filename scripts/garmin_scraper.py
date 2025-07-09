@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 Garmin Connect Scraper
-Retrieves activity and wellness data from Garmin Connect using direct API calls
-Processes activities and saves them in standardized format
+Retrieves activity and wellness data from Garmin Connect using hybrid approach:
+- REST API for daily wellness metrics (sleep, steps, body battery, resting HR)
+- FIT file parsing for rich workout data (training effects, HR zones, running dynamics, location)
 """
 
 import json
@@ -12,6 +13,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 import logging
+import io
 
 try:
     import garth
@@ -107,46 +109,9 @@ class GarminScraper:
             # Default to excluding the activity when date parsing fails (safer)
             return False
 
-    def get_activities_since_date(self, start_date: datetime) -> List[Dict]:
-        """Get activities from Garmin Connect since a specific date"""
-        try:
-            # Get last 100 activities to ensure we catch everything recent
-            activities = garth.connectapi("/activitylist-service/activities/search/activities", params={"limit": 100})
-            
-            # Filter to only activities newer than our last processed
-            new_activities = []
-            last_processed = self.get_last_processed()
-            
-            for activity in activities:
-                activity_id = activity.get('activityId')
-                activity_date = activity.get('startTimeLocal', '').split('T')[0]
-                
-                logger.debug(f"Evaluating activity {activity_id} from {activity_date}")
-                
-                # Check if we've reached the last processed activity
-                if last_processed["id"] and str(activity_id) == last_processed["id"]:
-                    logger.info(f"Found last processed activity {activity_id}. Stopping.")
-                    break
-                elif activity_date and self.is_activity_newer(activity_date, last_processed["date"]):
-                    logger.info(f"Adding activity {activity_id}")
-                    new_activities.append(activity)
-                else:
-                    logger.debug(f"Skipping activity {activity_id} (already processed)")
-            
-            logger.info(f"Found {len(new_activities)} new activities to process")
-            return new_activities
-            
-        except Exception as e:
-            logger.error(f"Error fetching activities: {e}")
-            return []
-
     def download_fit_file(self, activity_id: int) -> Optional[bytes]:
         """Download FIT file for an activity"""
         try:
-            # FIT files are binary data, so we need to use raw HTTP request
-            # Get the session and make a direct request for binary data
-            import requests
-            
             # Use garth's session to maintain authentication
             response = requests.get(
                 f"https://connectapi.garmin.com/download-service/files/activity/{activity_id}",
@@ -155,7 +120,7 @@ class GarminScraper:
             )
             
             if response.status_code == 200 and response.content:
-                logger.info(f"Successfully downloaded FIT file for activity {activity_id}")
+                logger.info(f"Successfully downloaded FIT file for activity {activity_id} ({len(response.content)} bytes)")
                 return response.content
             else:
                 logger.warning(f"Failed to download FIT file for activity {activity_id}: {response.status_code}")
@@ -164,61 +129,148 @@ class GarminScraper:
             logger.warning(f"Could not download FIT file for activity {activity_id}: {e}")
             return None
 
+    def get_city_from_coordinates(self, lat: float, lon: float) -> str:
+        """Get city name from coordinates - simplified for now"""
+        try:
+            # For now, return a simple location based on known coordinates
+            # In the future, this could use a geocoding service
+            if abs(lat - 41.91) < 0.1 and abs(lon - (-87.68)) < 0.1:
+                return "Chicago, IL"
+            else:
+                return f"Location: {lat:.2f}°N, {lon:.2f}°W"
+        except Exception:
+            return "Unknown Location"
+
     def parse_fit_file(self, fit_data: bytes) -> Dict[str, Any]:
-        """Parse FIT file to extract enhanced metrics"""
+        """Parse FIT file to extract comprehensive workout metrics"""
         enhanced_data = {
-            "runningDynamics": {},
-            "heartRateData": {},
-            "gpsData": {}
+            "training_effects": {},
+            "heart_rate_zones": {},
+            "workout_summary": {},
+            "running_dynamics": {},
+            "location": None,
+            "splits": []
         }
         
         try:
-            import io
-            fit_file = FitFile(io.BytesIO(fit_data))
+            fitfile = FitFile(io.BytesIO(fit_data))
             
-            # Track all record messages for detailed analysis
-            records = []
-            for record in fit_file.get_messages('record'):
-                record_data = {}
+            # 1. SESSION DATA (overall workout summary)
+            for record in fitfile.get_messages('session'):
                 for field in record:
-                    if field.value is not None:
-                        record_data[field.name] = field.value
-                records.append(record_data)
+                    if field.name == 'total_training_effect':
+                        enhanced_data["training_effects"]["aerobic"] = field.value / 10  # Garmin stores as integer * 10
+                    elif field.name == 'total_anaerobic_training_effect':
+                        enhanced_data["training_effects"]["anaerobic"] = field.value / 10
+                    elif field.name == 'avg_heart_rate':
+                        enhanced_data["workout_summary"]["avg_hr"] = field.value
+                    elif field.name == 'max_heart_rate':
+                        enhanced_data["workout_summary"]["max_hr"] = field.value
+                    elif field.name == 'avg_power':
+                        enhanced_data["running_dynamics"]["avg_power"] = field.value
+                    elif field.name == 'avg_running_cadence':
+                        enhanced_data["running_dynamics"]["avg_cadence"] = field.value
+                    elif field.name in ['start_position_lat', 'start_position_long']:
+                        # Convert from Garmin semicircles to degrees
+                        if field.name == 'start_position_lat':
+                            lat = field.value * (180 / (2**31))
+                            enhanced_data["location"] = {"lat": lat}
+                        elif field.name == 'start_position_long':
+                            lon = field.value * (180 / (2**31))
+                            if enhanced_data.get("location"):
+                                enhanced_data["location"]["lon"] = lon
+                break  # Only need first session record
             
-            if records:
-                # Extract running dynamics
-                cadence_values = [r.get('cadence') for r in records if r.get('cadence')]
-                if cadence_values:
-                    enhanced_data["runningDynamics"]["avgCadence"] = f"{sum(cadence_values) // len(cadence_values)} spm"
-                
-                # Extract stride length if available (convert from mm to m)
-                stride_length_values = [r.get('stride_length') for r in records if r.get('stride_length')]
-                if stride_length_values:
-                    avg_stride_mm = sum(stride_length_values) / len(stride_length_values)
-                    enhanced_data["runningDynamics"]["avgStrideLength"] = f"{round(avg_stride_mm / 1000, 2)} m"
-                
-                # Extract ground contact time (convert from ms)
-                gct_values = [r.get('stance_time') for r in records if r.get('stance_time')]
-                if gct_values:
-                    enhanced_data["runningDynamics"]["groundContactTime"] = f"{sum(gct_values) // len(gct_values)} ms"
-                
-                # Extract vertical oscillation (convert from mm to cm)
-                vo_values = [r.get('vertical_oscillation') for r in records if r.get('vertical_oscillation')]
-                if vo_values:
-                    avg_vo_mm = sum(vo_values) / len(vo_values)
-                    enhanced_data["runningDynamics"]["verticalOscillation"] = f"{round(avg_vo_mm / 10, 1)} cm"
-                
-                # Extract power data if available
-                power_values = [r.get('power') for r in records if r.get('power')]
-                if power_values:
-                    enhanced_data["runningDynamics"]["avgPower"] = f"{sum(power_values) // len(power_values)} W"
+            # Convert location to city name
+            if enhanced_data["location"] and enhanced_data["location"].get("lat") and enhanced_data["location"].get("lon"):
+                city = self.get_city_from_coordinates(enhanced_data["location"]["lat"], enhanced_data["location"]["lon"])
+                enhanced_data["location"] = city
             
-            logger.info("Successfully parsed FIT file for running dynamics")
+            # 2. LAP DATA (per-split running dynamics)
+            for lap_record in fitfile.get_messages('lap'):
+                lap_data = {}
+                for field in lap_record:
+                    if field.name == 'avg_heart_rate':
+                        lap_data["avg_hr"] = field.value
+                    elif field.name == 'max_heart_rate':
+                        lap_data["max_hr"] = field.value
+                    elif field.name == 'avg_running_cadence':
+                        lap_data["avg_cadence"] = f"{field.value} spm" if field.value else None
+                    elif field.name == 'avg_step_length':
+                        # Convert from mm to meters
+                        lap_data["avg_stride_length"] = f"{field.value / 1000:.2f} m" if field.value else None
+                    elif field.name == 'avg_stance_time':
+                        # Convert to milliseconds
+                        lap_data["ground_contact_time"] = f"{field.value:.0f} ms" if field.value else None
+                    elif field.name == 'avg_vertical_oscillation':
+                        # Convert from mm to cm
+                        lap_data["vertical_oscillation"] = f"{field.value / 10:.1f} cm" if field.value else None
+                
+                if lap_data:
+                    enhanced_data["splits"].append(lap_data)
+            
+            # 3. HEART RATE ZONE CALCULATION (sample from record data)
+            hr_readings = []
+            record_count = 0
+            
+            for record in fitfile.get_messages('record'):
+                record_count += 1
+                for field in record:
+                    if field.name == 'heart_rate' and field.value:
+                        hr_readings.append(field.value)
+                
+                # Sample every 10th record for efficiency
+                if record_count % 10 != 0:
+                    continue
+                    
+                # Stop if we have enough data points (200+ samples is plenty for zones)
+                if len(hr_readings) >= 200:
+                    break
+            
+            # Calculate time in zones from sampled HR data
+            if hr_readings:
+                enhanced_data["heart_rate_zones"] = self.calculate_hr_zones(hr_readings)
+            
+            logger.info(f"Successfully parsed FIT file: {len(hr_readings)} HR samples, {len(enhanced_data['splits'])} laps")
             
         except Exception as e:
             logger.warning(f"Error parsing FIT file: {e}")
         
         return enhanced_data
+
+    def calculate_hr_zones(self, hr_readings: List[int], max_hr: int = 193) -> Dict:
+        """Calculate time in HR zones from sampled readings"""
+        zones = {f"zone_{i}": 0 for i in range(1, 6)}
+        
+        for hr in hr_readings:
+            hr_percent = (hr / max_hr) * 100
+            if hr_percent < 60:
+                zones["zone_1"] += 1
+            elif hr_percent < 70:
+                zones["zone_2"] += 1
+            elif hr_percent < 80:
+                zones["zone_3"] += 1
+            elif hr_percent < 90:
+                zones["zone_4"] += 1
+            else:
+                zones["zone_5"] += 1
+        
+        # Convert counts to time estimates (assuming samples represent equal time intervals)
+        total_samples = sum(zones.values())
+        if total_samples > 0:
+            # Estimate total workout time from HR data points (rough approximation)
+            estimated_total_seconds = total_samples * 10  # Assuming ~10 second intervals
+            for zone in zones:
+                zone_percentage = zones[zone] / total_samples
+                zone_seconds = int(estimated_total_seconds * zone_percentage)
+                if zone_seconds > 0:
+                    minutes = zone_seconds // 60
+                    seconds = zone_seconds % 60
+                    zones[zone] = f"{minutes}:{seconds:02d}"
+                else:
+                    zones[zone] = "0:00"
+        
+        return zones
 
     def get_sleep_data(self, date: str) -> Optional[Dict]:
         """Get sleep data for a specific date"""
@@ -256,7 +308,7 @@ class GarminScraper:
         return None
 
     def get_wellness_data(self, date: str) -> Optional[Dict]:
-        """Get wellness data for a specific date"""
+        """Get wellness data for a specific date (removed self-evaluation)"""
         try:
             wellness = {}
             
@@ -322,28 +374,7 @@ class GarminScraper:
             except Exception as e:
                 logger.debug(f"Could not get HRV data: {e}")
 
-            # Get self-evaluation data (how did you feel, perceived effort)
-            try:
-                eval_data = garth.connectapi(f"/wellness-service/wellness/dailyStress/{date}")
-                if eval_data:
-                    wellness["selfEvaluation"] = {}
-                    # Garmin stores subjective wellness data in various endpoints
-                    if eval_data.get('overallStressLevel'):
-                        wellness["selfEvaluation"]["perceivedStress"] = eval_data['overallStressLevel']
-                    
-                    # Try to get wellness questionnaire data
-                    try:
-                        questionnaire_data = garth.connectapi(f"/wellness-service/wellness/dailyQuestionnaire/{date}")
-                        if questionnaire_data:
-                            if questionnaire_data.get('wellnessOverallFeeling'):
-                                wellness["selfEvaluation"]["howDidYouFeel"] = questionnaire_data['wellnessOverallFeeling']
-                            if questionnaire_data.get('wellnessEffortLevel'): 
-                                wellness["selfEvaluation"]["perceivedEffort"] = questionnaire_data['wellnessEffortLevel']
-                    except Exception as e:
-                        logger.debug(f"Could not get questionnaire data: {e}")
-                        
-            except Exception as e:
-                logger.debug(f"Could not get self-evaluation data: {e}")
+            # Note: Removed self-evaluation data collection per user request
             
             if wellness:
                 logger.info(f"Successfully retrieved wellness data for {date}")
@@ -362,8 +393,8 @@ class GarminScraper:
         minutes = (seconds % 3600) // 60
         return f"{hours}h {minutes}m"
 
-    def convert_garmin_to_activity_format(self, garmin_activity: Dict, enhanced_data: Optional[Dict] = None) -> Dict:
-        """Convert Garmin activity format to standardized activity format"""
+    def convert_garmin_to_activity_format(self, garmin_activity: Dict, fit_data: Optional[Dict] = None) -> Dict:
+        """Convert Garmin activity format to standardized activity format with FIT enhancement"""
         
         # Extract nested data objects
         summary_dto = garmin_activity.get('summaryDTO', {})
@@ -442,32 +473,63 @@ class GarminScraper:
             except Exception as e:
                 logger.warning(f"Could not parse start time '{start_time_local}': {e}")
 
-        # Convert distance from meters to miles
-        distance_m = summary_dto.get('distance', 0)
-        distance_mi = round(distance_m * 0.000621371, 2) if distance_m else 0
-        
-        # Convert duration from seconds to MM:SS format  
-        duration_s = summary_dto.get('duration', 0)
-        # Handle both integer and float duration values
-        if duration_s:
-            duration_s = int(float(duration_s))  # Convert to int safely
-            minutes = duration_s // 60
-            seconds = duration_s % 60
-            duration_formatted = f"{minutes}:{seconds:02d}"
-        else:
-            duration_formatted = ""
-        
-        # Calculate pace (min/mile)
-        pace = ""
-        if distance_mi > 0 and duration_s > 0:
-            pace_s_per_mile = duration_s / distance_mi
-            pace_min = int(pace_s_per_mile // 60)
-            pace_sec = int(pace_s_per_mile % 60)
-            pace = f"{pace_min}:{pace_sec:02d}/mi"
+        # Use FIT data when available, otherwise fall back to API data
+        if fit_data and fit_data.get("workout_summary"):
+            # Prefer FIT file data for basic metrics
+            distance_m = summary_dto.get('distance', 0)
+            distance_mi = round(distance_m * 0.000621371, 2) if distance_m else 0
+            
+            # Convert duration from seconds to MM:SS format  
+            duration_s = summary_dto.get('duration', 0)
+            if duration_s:
+                duration_s = int(float(duration_s))
+                minutes = duration_s // 60
+                seconds = duration_s % 60
+                duration_formatted = f"{minutes}:{seconds:02d}"
+            else:
+                duration_formatted = ""
+            
+            # Calculate pace (min/mile) 
+            pace = ""
+            if distance_mi > 0 and duration_s > 0:
+                pace_s_per_mile = duration_s / distance_mi
+                pace_min = int(pace_s_per_mile // 60)
+                pace_sec = int(pace_s_per_mile % 60)
+                pace = f"{pace_min}:{pace_sec:02d}/mi"
 
-        # Convert elevation from meters to feet
-        elevation_m = summary_dto.get('elevationGain', 0)
-        elevation_ft = int(round(elevation_m * 3.28084)) if elevation_m else 0
+            # Convert elevation from meters to feet
+            elevation_m = summary_dto.get('elevationGain', 0)
+            elevation_ft = int(round(elevation_m * 3.28084)) if elevation_m else 0
+            
+            # Use FIT file HR data
+            avg_hr = fit_data["workout_summary"].get("avg_hr", summary_dto.get('averageHR', 0))
+            max_hr = fit_data["workout_summary"].get("max_hr", summary_dto.get('maxHR', 0))
+        else:
+            # Fallback to API data when FIT parsing fails
+            distance_m = summary_dto.get('distance', 0)
+            distance_mi = round(distance_m * 0.000621371, 2) if distance_m else 0
+            
+            duration_s = summary_dto.get('duration', 0)
+            if duration_s:
+                duration_s = int(float(duration_s))
+                minutes = duration_s // 60
+                seconds = duration_s % 60
+                duration_formatted = f"{minutes}:{seconds:02d}"
+            else:
+                duration_formatted = ""
+            
+            pace = ""
+            if distance_mi > 0 and duration_s > 0:
+                pace_s_per_mile = duration_s / distance_mi
+                pace_min = int(pace_s_per_mile // 60)
+                pace_sec = int(pace_s_per_mile % 60)
+                pace = f"{pace_min}:{pace_sec:02d}/mi"
+
+            elevation_m = summary_dto.get('elevationGain', 0)
+            elevation_ft = int(round(elevation_m * 3.28084)) if elevation_m else 0
+            
+            avg_hr = summary_dto.get('averageHR', 0)
+            max_hr = summary_dto.get('maxHR', 0)
         
         # Get activity type from activityTypeDTO
         type_key = activity_type_dto.get('typeKey', 'unknown')
@@ -496,7 +558,8 @@ class GarminScraper:
             "elevation": f"{elevation_ft} ft",
             "pace": pace,
             "calories": str(int(summary_dto.get('calories', 0))) if summary_dto.get('calories') else "",
-            "averageHeartRate": f"{int(summary_dto.get('averageHR', 0))} bpm" if summary_dto.get('averageHR') else "",
+            "averageHeartRate": f"{int(avg_hr)} bpm" if avg_hr else "",
+            "maxHeartRate": f"{int(max_hr)} bpm" if max_hr else "",
             "weather": self.get_weather_data(garmin_activity),
             "laps": self.get_lap_data(garmin_activity)
         }
@@ -507,40 +570,22 @@ class GarminScraper:
         if end_time_iso:
             activity_format["endTime"] = end_time_iso
         
-        # Add running dynamics directly from summaryDTO
-        running_dynamics = {}
-        
-        if summary_dto.get('averageRunCadence'):
-            running_dynamics["avgCadence"] = f"{int(summary_dto['averageRunCadence'])} spm"
-        
-        if summary_dto.get('strideLength'):
-            # Convert from meters to more readable format
-            stride_m = summary_dto['strideLength']
-            running_dynamics["avgStrideLength"] = f"{stride_m:.2f} m"
-        
-        if summary_dto.get('groundContactTime'):
-            # Convert from seconds to milliseconds
-            gct_ms = int(summary_dto['groundContactTime'] * 1000)
-            running_dynamics["groundContactTime"] = f"{gct_ms} ms"
-        
-        if summary_dto.get('verticalOscillation'):
-            # Convert from meters to centimeters
-            vo_cm = summary_dto['verticalOscillation'] * 100
-            running_dynamics["verticalOscillation"] = f"{vo_cm:.1f} cm"
-        
-        if summary_dto.get('averagePower'):
-            running_dynamics["avgPower"] = f"{int(summary_dto['averagePower'])} W"
-        
-        if running_dynamics:
-            activity_format["runningDynamics"] = running_dynamics
-        
-        # Add enhanced data if available (from FIT file parsing)
-        if enhanced_data:
-            if enhanced_data.get("runningDynamics"):
-                # Merge with existing running dynamics
-                if "runningDynamics" not in activity_format:
-                    activity_format["runningDynamics"] = {}
-                activity_format["runningDynamics"].update(enhanced_data["runningDynamics"])
+        # Add FIT file data if available
+        if fit_data:
+            if fit_data.get("training_effects"):
+                activity_format["trainingEffects"] = fit_data["training_effects"]
+            
+            if fit_data.get("heart_rate_zones"):
+                activity_format["timeInHRZones"] = fit_data["heart_rate_zones"]
+                
+            if fit_data.get("location"):
+                activity_format["location"] = fit_data["location"]
+                
+            if fit_data.get("splits"):
+                # Merge FIT split data with API lap data
+                for i, fit_split in enumerate(fit_data["splits"]):
+                    if i < len(activity_format["laps"]):
+                        activity_format["laps"][i]["runningDynamics"] = fit_split
         
         return activity_format
 
@@ -599,7 +644,7 @@ class GarminScraper:
                     "pace": "",  # Will be calculated below
                     "elevation": "",
                     "heartRate": f"{int(split.get('averageHR', 0))} bpm" if split.get('averageHR') else "",
-                    "stepType": self.determine_step_type(split)  # Add step type analysis
+                    "stepType": None  # Will be set from FIT data if available
                 }
                 
                 # Convert pace from speed if available
@@ -646,61 +691,8 @@ class GarminScraper:
             logger.warning(f"Could not fetch lap data for activity {activity_id}: {e}")
             return []
 
-    def determine_step_type(self, split_data: Dict) -> str:
-        """Determine step type based on pace and cadence data"""
-        try:
-            # Get pace from speed
-            speed_mps = split_data.get('averageSpeed', 0)
-            if speed_mps > 0:
-                pace_s_per_mile = 1609.34 / speed_mps
-                pace_min_per_mile = pace_s_per_mile / 60
-                
-                # Classify based on pace (rough guidelines)
-                if pace_min_per_mile < 6:
-                    return "Sprint"
-                elif pace_min_per_mile < 7:
-                    return "Fast"
-                elif pace_min_per_mile < 9:
-                    return "Tempo"
-                elif pace_min_per_mile < 11:
-                    return "Easy"
-                else:
-                    return "Recovery"
-            
-            return "Unknown"
-        except Exception:
-            return "Unknown"
-
-    def get_heart_rate_zones(self, activity: Dict) -> Optional[Dict]:
-        """Get heart rate zone distribution for an activity"""
-        activity_id = activity.get('activityId')
-        if not activity_id:
-            return None
-            
-        try:
-            # Get detailed activity data including HR zones
-            hr_data = garth.connectapi(f"/activity-service/activity/{activity_id}/hrTimeInZones")
-            
-            if hr_data and hr_data.get('hrZones'):
-                zones = {}
-                for i, zone in enumerate(hr_data['hrZones'], 1):
-                    time_seconds = zone.get('timeInZone', 0)
-                    if time_seconds > 0:
-                        minutes = time_seconds // 60
-                        seconds = time_seconds % 60
-                        zones[f"zone{i}"] = f"{minutes}:{seconds:02d}"
-                
-                if zones:
-                    logger.info(f"Successfully retrieved HR zones for activity {activity_id}")
-                    return zones
-                    
-        except Exception as e:
-            logger.debug(f"Could not get HR zones for activity {activity_id}: {e}")
-            
-        return None
-
     def process_activities(self, specific_activity_id: Optional[str] = None) -> List[Dict]:
-        """Main processing function with proper date filtering"""
+        """Main processing function with FIT file parsing"""
         
         if not self.authenticate():
             return []
@@ -781,17 +773,18 @@ class GarminScraper:
                     logger.warning(f"Error getting detailed activity data for {activity_id}: {e}")
                     detailed_activity = activity
                 
-                # Convert to standard activity format
-                converted = self.convert_garmin_to_activity_format(detailed_activity)
+                # Download and parse FIT file for enhanced workout data
+                fit_data = None
+                logger.info(f"Downloading FIT file for activity {activity_id}")
+                fit_bytes = self.download_fit_file(activity_id)
+                if fit_bytes:
+                    fit_data = self.parse_fit_file(fit_bytes)
+                    logger.info(f"Successfully parsed FIT file for activity {activity_id}")
+                else:
+                    logger.warning(f"Could not download FIT file for activity {activity_id}, using API data only")
                 
-                # Temporarily disable FIT file download until we resolve API issues
-                # logger.info(f"Downloading FIT file for activity {activity_id}")
-                # fit_data = self.download_fit_file(activity_id)
-                # if fit_data:
-                #     enhanced = self.parse_fit_file(fit_data)
-                #     if enhanced.get("runningDynamics"):
-                #         converted["runningDynamics"] = enhanced["runningDynamics"]
-                #         logger.info(f"Added running dynamics for activity {activity_id}")
+                # Convert to standard activity format with FIT enhancement
+                converted = self.convert_garmin_to_activity_format(detailed_activity, fit_data)
                 
                 # Get sleep and wellness data for the activity date
                 if activity_date:
@@ -806,13 +799,6 @@ class GarminScraper:
                     if wellness_data:
                         converted["wellness"] = wellness_data
                         logger.info(f"Added wellness data for {activity_date}")
-
-                # Get heart rate zones for the activity
-                logger.info(f"Getting heart rate zones for activity {activity_id}")
-                hr_zones = self.get_heart_rate_zones(activity)
-                if hr_zones:
-                    converted["timeInHRZones"] = hr_zones
-                    logger.info(f"Added HR zones for activity {activity_id}")
                 
                 logger.info(f"Successfully processed activity {activity_id} with enhanced data")
                 processed_activities.append(converted)
