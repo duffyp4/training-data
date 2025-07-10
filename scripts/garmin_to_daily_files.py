@@ -187,21 +187,32 @@ class GarminToDailyFiles:
                 "splits": self.convert_laps_to_splits(activity.get('laps', []))
             }
             
-            # Add location if available (from FIT file)
+            # Add enhanced data from API responses
             if activity.get('location'):
-                workout["location"] = activity['location']
+                if isinstance(activity['location'], dict) and activity['location'].get('city'):
+                    workout["location"] = activity['location']['city']
+                else:
+                    workout["location"] = activity['location']
             
-            # Add weather data if available
+            # Add Visual Crossing weather data
             if activity.get('weather'):
                 workout["weather"] = activity['weather']
             
-            # Add training effects if available (from FIT file)
-            if activity.get('trainingEffects'):
-                workout["training_effects"] = activity['trainingEffects']
+            # Add training effects from API
+            if activity.get('training_effects'):
+                workout["training_effects"] = activity['training_effects']
             
-            # Add time in HR zones if available (from FIT file)
-            if activity.get('timeInHRZones'):
-                workout["time_in_hr_zones"] = activity['timeInHRZones']
+            # Add running dynamics from API
+            if activity.get('running_dynamics'):
+                workout["running_dynamics"] = activity['running_dynamics']
+            
+            # Add power zones from API
+            if activity.get('power_zones'):
+                workout["power_zones"] = activity['power_zones']
+            
+            # Add power data from API
+            if activity.get('power'):
+                workout["power"] = activity['power']
             
             return workout
             
@@ -441,20 +452,37 @@ class GarminToDailyFiles:
                 if workout_info:
                     content.append(f"**Distance & Time:** {' • '.join(workout_info)}")
                 
-                # Location (from FIT file)
+                # Location (from enhanced API data)
                 if workout.get('location'):
                     content.append(f"**Location:** {workout['location']}")
                 
-                # Weather data
+                # Weather data (Visual Crossing API format)
                 if workout.get('weather'):
                     weather = workout['weather']
                     weather_info = []
-                    if weather.get('description'):
-                        weather_info.append(weather['description'])
+                    
+                    # Temperature: "start_temp -> finish_temp"
                     if weather.get('temperature'):
-                        weather_info.append(weather['temperature'])
+                        temp = weather['temperature']
+                        temp_str = f"{temp.get('start', '?')}°F → {temp.get('end', '?')}°F"
+                        weather_info.append(temp_str)
+                    
+                    # Humidity: "start_humidity -> finish_humidity"
                     if weather.get('humidity'):
-                        weather_info.append(f"{weather['humidity']} humidity")
+                        humidity = weather['humidity']
+                        humidity_str = f"{humidity.get('start', '?')}% → {humidity.get('end', '?')}% humidity"
+                        weather_info.append(humidity_str)
+                    
+                    # Dew Point: "start_dew -> finish_dew"
+                    if weather.get('dew_point'):
+                        dew = weather['dew_point']
+                        dew_str = f"{dew.get('start', '?')}°F → {dew.get('end', '?')}°F dew point"
+                        weather_info.append(dew_str)
+                    
+                    # Conditions
+                    if weather.get('conditions'):
+                        weather_info.append(weather['conditions'])
+                    
                     if weather_info:
                         content.append(f"**Weather:** {' • '.join(weather_info)}")
                 
@@ -469,7 +497,7 @@ class GarminToDailyFiles:
                     pace_str = self.format_pace(workout['avg_pace_s_per_mi'])
                     content.append(f"**Average Pace:** {pace_str}")
                 
-                # Training Effects (from FIT file)
+                # Training Effects (from enhanced API data)
                 if workout.get('training_effects'):
                     effects = workout['training_effects']
                     effects_info = []
@@ -477,17 +505,48 @@ class GarminToDailyFiles:
                         effects_info.append(f"Aerobic: {effects['aerobic']}")
                     if effects.get('anaerobic'):
                         effects_info.append(f"Anaerobic: {effects['anaerobic']}")
+                    if effects.get('label'):
+                        effects_info.append(f"({effects['label']})")
                     if effects_info:
                         content.append(f"**Training Effects:** {' • '.join(effects_info)}")
                 
-                # Time in HR Zones (from FIT file)
-                if workout.get('time_in_hr_zones'):
+                # Running Dynamics (workout averages from API)
+                if workout.get('running_dynamics'):
+                    dynamics = workout['running_dynamics']
+                    dynamics_info = []
+                    if dynamics.get('cadence_spm'):
+                        dynamics_info.append(f"Cadence: {dynamics['cadence_spm']} spm")
+                    if dynamics.get('stride_length_cm'):
+                        dynamics_info.append(f"Stride: {dynamics['stride_length_cm']} cm")
+                    if dynamics.get('ground_contact_time_ms'):
+                        dynamics_info.append(f"GCT: {dynamics['ground_contact_time_ms']} ms")
+                    if dynamics.get('vertical_oscillation_mm'):
+                        dynamics_info.append(f"VO: {dynamics['vertical_oscillation_mm']} mm")
+                    if dynamics_info:
+                        content.append(f"**Running Dynamics:** {' • '.join(dynamics_info)}")
+                
+                # Power Data (from API)
+                if workout.get('power'):
+                    power = workout['power']
+                    power_info = []
+                    if power.get('average'):
+                        power_info.append(f"Avg: {power['average']}W")
+                    if power.get('maximum'):
+                        power_info.append(f"Max: {power['maximum']}W")
+                    if power.get('normalized'):
+                        power_info.append(f"NP: {power['normalized']}W")
+                    if power_info:
+                        content.append(f"**Power:** {' • '.join(power_info)}")
+                
+                # Power Zones (from API - can be used to show pattern for HR zones)
+                if workout.get('power_zones'):
                     zones_info = []
-                    for zone, time in workout['time_in_hr_zones'].items():
+                    for zone, time in workout['power_zones'].items():
                         if time != "0:00":  # Only show zones with time
-                            zones_info.append(f"{zone.upper()}: {time}")
+                            zone_num = zone.replace('zone_', '').upper()
+                            zones_info.append(f"Z{zone_num}: {time}")
                     if zones_info:
-                        content.append(f"**Time in HR Zones:** {' • '.join(zones_info)}")
+                        content.append(f"**Power Zones:** {' • '.join(zones_info)}")
                 
                 # Splits with enhanced running dynamics
                 splits = workout.get('splits', [])
@@ -515,26 +574,39 @@ class GarminToDailyFiles:
                         elev = split.get('elev_gain_ft', 0)
                         elev_str = f"{elev:+d} ft" if elev != 0 else "0 ft"
                         
-                        # Step type (from FIT data if available)
-                        step_type = split.get('step_type') or 'Unknown'
+                        content.append(f"**Mile {mile}:** {time_str} • {pace_str} • {hr_str} • {elev_str}")
                         
-                        content.append(f"**Mile {mile}:** {time_str} • {pace_str} • {hr_str} • {elev_str} • {step_type}")
-                        
-                        # Running dynamics (per-split from FIT file)
+                        # Running dynamics (per-split from enhanced API data)
                         if split.get('running_dynamics'):
                             dynamics = split['running_dynamics']
                             dynamics_info = []
-                            if dynamics.get('avg_cadence'):
-                                dynamics_info.append(f"Cadence: {dynamics['avg_cadence']}")
-                            if dynamics.get('avg_stride_length'):
-                                dynamics_info.append(f"Stride: {dynamics['avg_stride_length']}")
-                            if dynamics.get('ground_contact_time'):
-                                dynamics_info.append(f"GCT: {dynamics['ground_contact_time']}")
-                            if dynamics.get('vertical_oscillation'):
-                                dynamics_info.append(f"VO: {dynamics['vertical_oscillation']}")
+                            if dynamics.get('cadence_spm'):
+                                dynamics_info.append(f"Cadence: {dynamics['cadence_spm']} spm")
+                            if dynamics.get('stride_length_cm'):
+                                dynamics_info.append(f"Stride: {dynamics['stride_length_cm']} cm")
+                            if dynamics.get('ground_contact_time_ms'):
+                                dynamics_info.append(f"GCT: {dynamics['ground_contact_time_ms']} ms")
+                            if dynamics.get('vertical_oscillation_mm'):
+                                dynamics_info.append(f"VO: {dynamics['vertical_oscillation_mm']} mm")
+                            if dynamics.get('vertical_ratio_percent'):
+                                dynamics_info.append(f"VR: {dynamics['vertical_ratio_percent']}%")
                             
                             if dynamics_info:
                                 content.append(f"  *Running Dynamics:* {' • '.join(dynamics_info)}")
+                        
+                        # Power data (per-split from enhanced API data)
+                        if split.get('power'):
+                            power = split['power']
+                            power_info = []
+                            if power.get('average'):
+                                power_info.append(f"Avg: {power['average']}W")
+                            if power.get('maximum'):
+                                power_info.append(f"Max: {power['maximum']}W")
+                            if power.get('normalized'):
+                                power_info.append(f"NP: {power['normalized']}W")
+                            
+                            if power_info:
+                                content.append(f"  *Power:* {' • '.join(power_info)}")
                         
                         content.append("")
                 

@@ -429,6 +429,88 @@ class GarminScraper:
         minutes = (seconds % 3600) // 60
         return f"{hours}h {minutes}m"
 
+    def extract_enhanced_activity_data(self, activity: Dict, detailed_activity: Dict = None) -> Dict:
+        """Extract enhanced data from API responses (training effects, running dynamics, location, etc.)"""
+        enhanced_data = {}
+        
+        # Use detailed activity if available, otherwise basic activity
+        source_activity = detailed_activity if detailed_activity else activity
+        
+        # Extract GPS location and convert to city name
+        if activity.get('startLatitude') and activity.get('startLongitude'):
+            lat, lon = activity['startLatitude'], activity['startLongitude']
+            enhanced_data['location'] = {
+                'coordinates': {'lat': lat, 'lon': lon},
+                'city': self.get_city_from_coordinates(lat, lon)
+            }
+            logger.info(f"Location: {lat}, {lon} → {enhanced_data['location']['city']}")
+        
+        # Extract training effects
+        training_effects = {}
+        if activity.get('aerobicTrainingEffect'):
+            training_effects['aerobic'] = round(activity['aerobicTrainingEffect'], 1)
+        if activity.get('anaerobicTrainingEffect'):
+            training_effects['anaerobic'] = round(activity['anaerobicTrainingEffect'], 1)
+        if activity.get('trainingEffectLabel'):
+            training_effects['label'] = activity['trainingEffectLabel']
+        if activity.get('activityTrainingLoad'):
+            training_effects['training_load'] = round(activity['activityTrainingLoad'], 1)
+            
+        if training_effects:
+            enhanced_data['training_effects'] = training_effects
+            logger.info(f"Training Effects - Aerobic: {training_effects.get('aerobic')}, Anaerobic: {training_effects.get('anaerobic')}")
+        
+        # Extract running dynamics (workout averages)
+        running_dynamics = {}
+        dynamics_mapping = {
+            'averageRunningCadenceInStepsPerMinute': 'cadence_spm',
+            'avgVerticalOscillation': 'vertical_oscillation_mm',
+            'avgGroundContactTime': 'ground_contact_time_ms',
+            'avgStrideLength': 'stride_length_cm',
+            'avgVerticalRatio': 'vertical_ratio_percent'
+        }
+        
+        for api_field, our_field in dynamics_mapping.items():
+            if activity.get(api_field):
+                running_dynamics[our_field] = round(activity[api_field], 2)
+        
+        if running_dynamics:
+            enhanced_data['running_dynamics'] = running_dynamics
+            logger.info(f"Running Dynamics - Cadence: {running_dynamics.get('cadence_spm')} spm, Stride: {running_dynamics.get('stride_length_cm')} cm")
+        
+        # Extract power zones (use pattern for HR zones if HR zones not available)
+        power_zones = {}
+        for i in range(1, 8):  # Check zones 1-7
+            zone_key = f'powerTimeInZone_{i}'
+            if activity.get(zone_key):
+                # Convert seconds to minutes:seconds format
+                total_seconds = int(activity[zone_key])
+                minutes = total_seconds // 60
+                seconds = total_seconds % 60
+                power_zones[f'zone_{i}'] = f"{minutes}:{seconds:02d}"
+        
+        if power_zones:
+            enhanced_data['power_zones'] = power_zones
+            logger.info(f"Power Zones found: {len(power_zones)} zones")
+        
+        # Extract other enhanced metrics
+        if activity.get('calories'):
+            enhanced_data['calories'] = int(activity['calories'])
+        
+        # Extract power data if available
+        power_data = {}
+        if activity.get('avgPower'):
+            power_data['average'] = int(activity['avgPower'])
+        if activity.get('maxPower'):
+            power_data['maximum'] = int(activity['maxPower'])
+        if activity.get('normPower'):
+            power_data['normalized'] = int(activity['normPower'])
+            
+        if power_data:
+            enhanced_data['power'] = power_data
+        
+        return enhanced_data
+
     def convert_garmin_to_activity_format(self, garmin_activity: Dict, fit_data: Optional[Dict] = None) -> Dict:
         """Convert Garmin activity format to standardized activity format with FIT enhancement"""
         
@@ -642,6 +724,103 @@ class GarminScraper:
         
         return weather
 
+    def get_weather_from_visual_crossing(self, lat: float, lon: float, start_time: str, end_time: str) -> Dict:
+        """Get weather data from Visual Crossing API for start and end of workout"""
+        import requests
+        from datetime import datetime
+        
+        api_key = os.getenv('VISUAL_CROSSING_API_KEY')
+        if not api_key:
+            logger.warning("VISUAL_CROSSING_API_KEY not set, skipping weather data")
+            return {}
+        
+        try:
+            # Parse start and end times to get date and times
+            start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+            end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+            
+            # Format for Visual Crossing API (YYYY-MM-DDTHH:mm:ss)
+            start_str = start_dt.strftime('%Y-%m-%dT%H:%M:%S')
+            end_str = end_dt.strftime('%Y-%m-%dT%H:%M:%S')
+            date_str = start_dt.strftime('%Y-%m-%d')
+            
+            # Visual Crossing API URL
+            url = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{lat},{lon}/{date_str}"
+            
+            params = {
+                'key': api_key,
+                'include': 'hours',
+                'elements': 'datetime,temp,humidity,dew,conditions',
+                'unitGroup': 'us'
+            }
+            
+            logger.info(f"Getting weather data for {lat}, {lon} from {start_str} to {end_str}")
+            response = requests.get(url, params=params, timeout=10)
+            
+            if response.status_code == 200:
+                weather_data = response.json()
+                
+                # Find closest hours to start and end times
+                start_hour = start_dt.hour
+                end_hour = end_dt.hour
+                
+                start_weather = None
+                end_weather = None
+                
+                if 'days' in weather_data and weather_data['days']:
+                    day_data = weather_data['days'][0]
+                    if 'hours' in day_data:
+                        hours = day_data['hours']
+                        
+                        # Find closest hour to start time
+                        for hour in hours:
+                            hour_time = datetime.strptime(hour['datetime'], '%H:%M:%S').hour
+                            if hour_time >= start_hour:
+                                start_weather = hour
+                                break
+                        
+                        # Find closest hour to end time
+                        for hour in reversed(hours):
+                            hour_time = datetime.strptime(hour['datetime'], '%H:%M:%S').hour
+                            if hour_time <= end_hour:
+                                end_weather = hour
+                                break
+                
+                # If we couldn't find hourly data, use daily data
+                if not start_weather and 'days' in weather_data and weather_data['days']:
+                    day_data = weather_data['days'][0]
+                    start_weather = end_weather = day_data
+                
+                if start_weather and end_weather:
+                    weather_result = {
+                        'temperature': {
+                            'start': int(start_weather.get('temp', 0)),
+                            'end': int(end_weather.get('temp', 0))
+                        },
+                        'humidity': {
+                            'start': int(start_weather.get('humidity', 0)),
+                            'end': int(end_weather.get('humidity', 0))
+                        },
+                        'dew_point': {
+                            'start': int(start_weather.get('dew', 0)),
+                            'end': int(end_weather.get('dew', 0))
+                        },
+                        'conditions': start_weather.get('conditions', '')
+                    }
+                    
+                    logger.info(f"Weather: {weather_result['temperature']['start']}°F → {weather_result['temperature']['end']}°F")
+                    return weather_result
+                else:
+                    logger.warning("Could not extract weather data from Visual Crossing response")
+                    return {}
+            else:
+                logger.warning(f"Visual Crossing API error: {response.status_code}")
+                return {}
+                
+        except Exception as e:
+            logger.warning(f"Error getting weather data: {e}")
+            return {}
+
     def get_lap_data(self, activity: Dict) -> List[Dict]:
         """Extract lap data from Garmin activity using splits endpoint"""
         activity_id = activity.get('activityId')
@@ -715,6 +894,35 @@ class GarminScraper:
                         lap_data["elevation"] = f"{elev_ft} ft"
                     except (ValueError, TypeError):
                         pass
+                
+                # Extract per-split running dynamics
+                running_dynamics = {}
+                dynamics_mapping = {
+                    'averageRunCadence': 'cadence_spm',
+                    'groundContactTime': 'ground_contact_time_ms',
+                    'strideLength': 'stride_length_cm',
+                    'verticalOscillation': 'vertical_oscillation_mm',
+                    'verticalRatio': 'vertical_ratio_percent'
+                }
+                
+                for api_field, our_field in dynamics_mapping.items():
+                    if split.get(api_field):
+                        running_dynamics[our_field] = round(float(split[api_field]), 2)
+                
+                if running_dynamics:
+                    lap_data["running_dynamics"] = running_dynamics
+                
+                # Extract per-split power data
+                power_data = {}
+                if split.get('averagePower'):
+                    power_data['average'] = int(split['averagePower'])
+                if split.get('maxPower'):
+                    power_data['maximum'] = int(split['maxPower'])
+                if split.get('normalizedPower'):
+                    power_data['normalized'] = int(split['normalizedPower'])
+                
+                if power_data:
+                    lap_data["power"] = power_data
                 
                 laps.append(lap_data)
             
@@ -823,8 +1031,25 @@ class GarminScraper:
                 else:
                     logger.warning(f"Could not download FIT file for activity {activity_id}, using API data only")
                 
+                # Extract enhanced data from API response
+                enhanced_data = self.extract_enhanced_activity_data(activity, detailed_activity)
+                
                 # Convert to standard activity format with FIT enhancement
                 converted = self.convert_garmin_to_activity_format(detailed_activity, fit_data)
+                
+                # Get weather data if we have location and times
+                if (enhanced_data.get('location') and 
+                    converted.get('startTime') and converted.get('endTime')):
+                    coords = enhanced_data['location']['coordinates']
+                    weather_data = self.get_weather_from_visual_crossing(
+                        coords['lat'], coords['lon'], 
+                        converted['startTime'], converted['endTime']
+                    )
+                    if weather_data:
+                        enhanced_data['weather'] = weather_data
+                
+                # Merge enhanced data into the converted activity
+                converted.update(enhanced_data)
                 
                 # Get sleep and wellness data for the activity date
                 if activity_date:
