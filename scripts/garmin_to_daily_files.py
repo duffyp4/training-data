@@ -414,7 +414,7 @@ class GarminToDailyFiles:
         if daily.get('steps'):
             content.append(f"**Steps:** {daily['steps']:,}")
         
-        # Body Battery (corrected path)
+        # Body Battery 
         bb = daily.get('body_battery', {})
         if bb.get('charge') is not None or bb.get('drain') is not None:
             bb_info = []
@@ -426,6 +426,10 @@ class GarminToDailyFiles:
         
         if daily.get('resting_hr'):
             content.append(f"**Resting Heart Rate:** {daily['resting_hr']} bpm")
+        
+        # Check if we have any daily metrics to show
+        if not any([daily.get('steps'), bb.get('charge'), bb.get('drain'), daily.get('resting_hr')]):
+            content.append("No daily wellness data available for this date")
         
         content.append("")  # Empty line
         
