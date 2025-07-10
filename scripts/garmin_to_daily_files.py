@@ -346,6 +346,103 @@ class GarminToDailyFiles:
         # NO MORE TOTALS/SLEEP SUMMARY - just the title
         return f"# {date} · Daily Summary"
 
+    def get_smart_metric_layout(self, metrics: List[Dict]) -> str:
+        """Generate smart metric layout that avoids awkward two-line displays"""
+        if not metrics:
+            return ""
+        
+        # Calculate if metrics will be too cramped in 2-column grid
+        long_metrics = []
+        short_metrics = []
+        
+        for metric in metrics:
+            label_length = len(metric['label'])
+            value_length = len(str(metric['value']))
+            total_length = label_length + value_length
+            
+            # If combined length > 12 characters, treat as long
+            if total_length > 12:
+                long_metrics.append(metric)
+            else:
+                short_metrics.append(metric)
+        
+        html = ""
+        
+        # If we have any long metrics, use single column for all to maintain consistency
+        if long_metrics:
+            html += '<div class="metric-list">'
+            for metric in metrics:
+                html += f'<div class="metric-item-full"><span class="metric-label">{metric["label"]}</span><span class="metric-value">{metric["value"]}</span></div>'
+            html += '</div>'
+        else:
+            # All metrics are short, safe to use 2-column grid
+            html += '<div class="metric-grid">'
+            for metric in metrics:
+                html += f'<div class="metric-item"><span class="metric-label">{metric["label"]}</span><span class="metric-value">{metric["value"]}</span></div>'
+            html += '</div>'
+        
+        return html
+
+    def generate_html_table(self, splits: List[Dict]) -> str:
+        """Generate proper HTML table for splits"""
+        if not splits:
+            return ""
+        
+        html = '<table class="splits-table">'
+        
+        # Table header
+        html += '<thead><tr>'
+        html += '<th>Split</th><th>Time</th><th>Pace</th><th>HR Avg</th><th>HR Max</th>'
+        html += '<th>Elev</th><th>Cadence</th><th>Stride</th><th>GCT</th><th>VO</th>'
+        html += '</tr></thead>'
+        
+        # Table body
+        html += '<tbody>'
+        for split in splits:
+            html += '<tr>'
+            
+            # Split number
+            split_num = split.get('split', split.get('mile', '?'))
+            html += f'<td>{split_num}</td>'
+            
+            # Time
+            time_s = split.get('mile_time_s', 0)
+            time_str = self.format_time_duration(time_s) if time_s > 0 else "N/A"
+            html += f'<td>{time_str}</td>'
+            
+            # Pace
+            pace_str = self.format_pace(split.get('avg_pace_s_per_mi')) if split.get('avg_pace_s_per_mi') else "N/A"
+            html += f'<td>{pace_str}</td>'
+            
+            # Heart rate
+            hr_avg = split.get('avg_hr', '') or 'N/A'
+            hr_max = split.get('max_hr', '') or 'N/A'
+            html += f'<td>{hr_avg}</td><td>{hr_max}</td>'
+            
+            # Elevation
+            elev = split.get('elev_gain_ft', 0)
+            elev_str = f"{elev:+d} ft" if elev != 0 else "0 ft"
+            html += f'<td>{elev_str}</td>'
+            
+            # Running dynamics (per-split)
+            cadence = stride = gct = vo = "N/A"
+            if split.get('running_dynamics'):
+                rd = split['running_dynamics']
+                if rd.get('cadence_spm'):
+                    cadence = f"{rd['cadence_spm']} spm"
+                if rd.get('stride_length_cm'):
+                    stride = f"{rd['stride_length_cm']} cm"
+                if rd.get('ground_contact_time_ms'):
+                    gct = f"{rd['ground_contact_time_ms']} ms"
+                if rd.get('vertical_oscillation_mm'):
+                    vo = f"{rd['vertical_oscillation_mm']} mm"
+            
+            html += f'<td>{cadence}</td><td>{stride}</td><td>{gct}</td><td>{vo}</td>'
+            html += '</tr>'
+        
+        html += '</tbody></table>'
+        return html
+
     def get_navigation_buttons(self, current_date: str) -> str:
         """Generate navigation buttons with PROPER paths (fixes 404 issue)"""
         try:
@@ -511,28 +608,51 @@ h1 {
     font-size: 1.5em;
 }
 
-/* Metric Grid - IMPROVED SPACING */
+/* SMART METRIC LAYOUTS */
+/* Two-column grid for short metrics */
 .metric-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px; /* INCREASED GAP */
+    gap: 16px;
     margin: 16px 0;
 }
 
-/* Metric Items - FIXED SPACING AND ALIGNMENT */
+/* Single column list for long metrics to avoid awkward wrapping */
+.metric-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+/* Standard metric items (2-column grid) */
 .metric-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 18px; /* INCREASED PADDING */
-    background: rgba(255,255,255,0.9); /* DARKER BACKGROUND */
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.9);
     border-radius: 10px;
     transition: all 0.2s ease;
     border: 1px solid rgba(255,255,255,0.8);
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.metric-item:hover {
+/* Full-width metric items (single column) for longer content */
+.metric-item-full {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    width: 100%;
+}
+
+.metric-item:hover, .metric-item-full:hover {
     background: rgba(255,255,255,0.95);
     transform: translateY(-1px);
 }
@@ -540,17 +660,19 @@ h1 {
 /* IMPROVED LABEL/VALUE DISTINCTION */
 .metric-label {
     font-weight: 600;
-    color: #6b7280; /* DARKER GRAY */
+    color: #6b7280;
     font-size: 0.85em;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
 
 .metric-value {
-    font-weight: 800; /* BOLDER */
-    color: #1f2937; /* MUCH DARKER */
-    font-size: 1.1em; /* SLIGHTLY LARGER */
-    margin-left: 12px; /* PROPER SPACING */
+    font-weight: 800;
+    color: #1f2937;
+    font-size: 1.1em;
+    margin-left: 12px;
+    text-align: right;
 }
 
 .metric-primary {
@@ -601,7 +723,7 @@ h1 {
     border-bottom: 2px solid #e5e7eb;
 }
 
-/* ENHANCED TABLE STYLING - RESTORED PROPER FORMAT */
+/* PROPER HTML TABLE STYLING */
 .splits-section {
     margin: 32px 0;
     grid-column: 1 / -1;
@@ -614,9 +736,10 @@ h1 {
     font-size: 1.4em;
 }
 
-table { 
-    border-collapse: collapse; 
-    width: 100%; 
+/* HTML Table Styles */
+.splits-table {
+    border-collapse: collapse;
+    width: 100%;
     margin: 20px 0;
     border-radius: 12px;
     overflow: hidden;
@@ -624,11 +747,11 @@ table {
     background: white;
 }
 
-th { 
+.splits-table th {
     background: linear-gradient(135deg, #1f2937, #374151);
-    color: white; 
-    padding: 16px 12px; 
-    text-align: center; 
+    color: white;
+    padding: 16px 12px;
+    text-align: center;
     font-weight: 700;
     font-size: 0.9em;
     text-transform: uppercase;
@@ -636,25 +759,25 @@ th {
     border: none;
 }
 
-td { 
-    padding: 12px 10px; 
-    text-align: center; 
+.splits-table td {
+    padding: 12px 10px;
+    text-align: center;
     border: 1px solid #d1d5db;
     font-weight: 500;
     font-size: 0.9em;
 }
 
 /* MUCH DARKER alternating rows for better visibility */
-tr:nth-child(even) { 
+.splits-table tr:nth-child(even) {
     background-color: #9ca3af; /* MUCH DARKER GRAY */
     color: #1f2937;
 }
 
-tr:nth-child(odd) { 
-    background-color: #ffffff; 
+.splits-table tr:nth-child(odd) {
+    background-color: #ffffff;
 }
 
-tr:hover { 
+.splits-table tr:hover {
     background-color: #6b7280 !important; /* DARK HOVER */
     color: white !important;
     transform: scale(1.01);
@@ -782,11 +905,11 @@ tr:hover {
         font-size: 2em;
     }
     
-    table {
+    .splits-table {
         font-size: 0.8em;
     }
     
-    th, td {
+    .splits-table th, .splits-table td {
         padding: 8px 6px;
     }
 }
@@ -821,15 +944,12 @@ tr:hover {
                 mins = sleep['sleep_minutes'] % 60
                 content.append(f'<div class="metric-primary">{hours}h {mins}m total</div>')
             
+            # Use smart metric layout for sleep (these are short, use grid)
             content.append('<div class="metric-grid">')
             if sleep.get('sleep_score'):
                 content.append(f'<div class="metric-item"><span class="metric-label">Score</span><span class="metric-value">{sleep["sleep_score"]}</span></div>')
             if sleep.get('hrv_night_avg'):
                 content.append(f'<div class="metric-item"><span class="metric-label">HRV</span><span class="metric-value">{sleep["hrv_night_avg"]}ms</span></div>')
-            if sleep.get('deep_minutes'):
-                content.append(f'<div class="metric-item"><span class="metric-label">Deep</span><span class="metric-value">{sleep["deep_minutes"]}m</span></div>')
-            if sleep.get('rem_minutes'):
-                content.append(f'<div class="metric-item"><span class="metric-label">REM</span><span class="metric-value">{sleep["rem_minutes"]}m</span></div>')
             content.append('</div>')
             
             # IMPROVED Sleep breakdown - All stages included and properly formatted
@@ -857,21 +977,23 @@ tr:hover {
         if daily.get('steps'):
             content.append(f'<div class="metric-primary">{daily["steps"]:,} steps</div>')
         
-        content.append('<div class="metric-grid">')
+        # Prepare metrics for smart layout
+        wellness_metrics = []
         bb = daily.get('body_battery', {})
         if bb.get('charge') is not None and bb.get('charge') > 0:
-            content.append(f'<div class="metric-item"><span class="metric-label">Battery</span><span class="metric-value">+{bb["charge"]}</span></div>')
+            wellness_metrics.append({"label": "Battery", "value": f"+{bb['charge']}"})
         elif bb.get('drain') is not None and bb.get('drain') > 0:
-            content.append(f'<div class="metric-item"><span class="metric-label">Battery</span><span class="metric-value">-{bb["drain"]}</span></div>')
+            wellness_metrics.append({"label": "Battery", "value": f"-{bb['drain']}"})
         
         if daily.get('resting_hr'):
-            content.append(f'<div class="metric-item"><span class="metric-label">RHR</span><span class="metric-value">{daily["resting_hr"]} bpm</span></div>')
+            wellness_metrics.append({"label": "RHR", "value": f"{daily['resting_hr']} bpm"})
         
         if daily.get('lactate_threshold'):
             lt = daily['lactate_threshold']
             if lt.get('heart_rate_bpm'):
-                content.append(f'<div class="metric-item"><span class="metric-label">LT</span><span class="metric-value">{lt["heart_rate_bpm"]} bpm</span></div>')
-        content.append('</div>')
+                wellness_metrics.append({"label": "LT", "value": f"{lt['heart_rate_bpm']} bpm"})
+        
+        content.append(self.get_smart_metric_layout(wellness_metrics))
         
         content.append('</div>')  # End wellness card
 
@@ -885,20 +1007,21 @@ tr:hover {
             if workout.get('distance_mi'):
                 content.append(f'<div class="metric-primary">{workout["distance_mi"]:.2f} mi</div>')
             
-            content.append('<div class="metric-grid">')
+            # Prepare metrics for smart layout
+            workout_metrics = []
             if workout.get('moving_time_s'):
                 time_str = self.format_time_duration(workout['moving_time_s'])
-                content.append(f'<div class="metric-item"><span class="metric-label">Time</span><span class="metric-value">{time_str}</span></div>')
+                workout_metrics.append({"label": "Time", "value": time_str})
             if workout.get('avg_pace_s_per_mi'):
                 pace_str = self.format_pace(workout['avg_pace_s_per_mi'])
-                content.append(f'<div class="metric-item"><span class="metric-label">Pace</span><span class="metric-value">{pace_str}</span></div>')
+                workout_metrics.append({"label": "Pace", "value": pace_str})
             if workout.get('avg_hr'):
-                content.append(f'<div class="metric-item"><span class="metric-label">Avg HR</span><span class="metric-value">{workout["avg_hr"]} bpm</span></div>')
+                workout_metrics.append({"label": "Avg HR", "value": f"{workout['avg_hr']} bpm"})
             if workout.get('training_effects', {}).get('label'):
                 label = workout['training_effects']['label']
-                content.append(f'<div class="metric-item"><span class="metric-label">Type</span><span class="metric-value">{label}</span></div>')
-            content.append('</div>')
+                workout_metrics.append({"label": "Type", "value": label})
             
+            content.append(self.get_smart_metric_layout(workout_metrics))
             content.append('</div>')  # End workout card
         
         content.append('</div>')  # End card container
@@ -1002,49 +1125,12 @@ tr:hover {
             
             content.append('</div>')  # End workout detail card
 
-            # RESTORED Splits Table with PROPER FORMATTING
+            # PROPER HTML TABLE for Splits
             splits = workout.get('splits', [])
             if splits:
                 content.append('<div class="splits-section">')
                 content.append('<h2>📊 Split Analysis</h2>')
-                
-                # Table with enhanced styling - RESTORED TABLE FORMAT
-                content.append("| Split | Time | Pace | HR Avg | HR Max | Elev | Cadence | Stride | GCT | VO |")
-                content.append("|-------|------|------|---------|---------|------|---------|--------|-----|-----|")
-                
-                for split in splits:
-                    split_num = split.get('split', split.get('mile', '?'))
-                    
-                    # Time
-                    time_s = split.get('mile_time_s', 0)
-                    time_str = self.format_time_duration(time_s) if time_s > 0 else "N/A"
-                    
-                    # Pace
-                    pace_str = self.format_pace(split.get('avg_pace_s_per_mi')) if split.get('avg_pace_s_per_mi') else "N/A"
-                    
-                    # Heart rate
-                    hr_avg = split.get('avg_hr', '') or 'N/A'
-                    hr_max = split.get('max_hr', '') or 'N/A'
-                    
-                    # Elevation
-                    elev = split.get('elev_gain_ft', 0)
-                    elev_str = f"{elev:+d} ft" if elev != 0 else "0 ft"
-                    
-                    # Enhanced running dynamics (per-split)
-                    cadence = stride = gct = vo = "N/A"
-                    if split.get('running_dynamics'):
-                        rd = split['running_dynamics']
-                        if rd.get('cadence_spm'):
-                            cadence = f"{rd['cadence_spm']} spm"
-                        if rd.get('stride_length_cm'):
-                            stride = f"{rd['stride_length_cm']} cm"
-                        if rd.get('ground_contact_time_ms'):
-                            gct = f"{rd['ground_contact_time_ms']} ms"
-                        if rd.get('vertical_oscillation_mm'):
-                            vo = f"{rd['vertical_oscillation_mm']} mm"
-                    
-                    content.append(f"| {split_num} | {time_str} | {pace_str} | {hr_avg} | {hr_max} | {elev_str} | {cadence} | {stride} | {gct} | {vo} |")
-                
+                content.append(self.generate_html_table(splits))
                 content.append('</div>')  # End splits section
 
         # JavaScript for collapsible functionality
