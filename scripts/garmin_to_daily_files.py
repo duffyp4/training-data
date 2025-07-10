@@ -955,11 +955,11 @@ h1 {
     }
 }
 
-/* Progressive Disclosure - IMPROVED STYLING */
+/* PROGRESSIVE DISCLOSURE - IMPROVED STYLING */
 .collapsible {
     cursor: pointer;
     padding: 16px 20px;
-    background: linear-gradient(135deg, #e5e7eb, #d1d5db); /* DARKER */
+    background: linear-gradient(135deg, #e5e7eb, #d1d5db);
     border: none;
     border-radius: 10px;
     text-align: left;
@@ -995,7 +995,7 @@ h1 {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-out;
-    background: rgba(255,255,255,0.9); /* DARKER */
+    background: rgba(255,255,255,0.9);
     border-radius: 0 0 8px 8px;
 }
 
