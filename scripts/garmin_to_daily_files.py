@@ -89,6 +89,10 @@ class GarminToDailyFiles:
                 
                 if wellness.get('hrv'):
                     daily_data[date_str]['sleep_metrics']['hrv_night_avg'] = wellness['hrv']
+                
+                # Add lactate threshold (NEW)
+                if wellness.get('lactateThreshold'):
+                    daily_data[date_str]['daily_metrics']['lactate_threshold'] = wellness['lactateThreshold']
             
             # Process workout data
             workout_data = self.convert_activity_to_workout_metrics(activity)
@@ -206,8 +210,11 @@ class GarminToDailyFiles:
             if activity.get('running_dynamics'):
                 workout["running_dynamics"] = activity['running_dynamics']
             
-            # Add power zones from API
-            if activity.get('power_zones'):
+            # Add HR zones from API (NEW - replaces power zones)
+            if activity.get('hr_zones'):
+                workout["hr_zones"] = activity['hr_zones']
+            elif activity.get('power_zones'):
+                # Fallback to power zones if HR zones not available
                 workout["power_zones"] = activity['power_zones']
             
             # Add power data from API
@@ -282,7 +289,7 @@ class GarminToDailyFiles:
                 avg_hr = int(hr_str.replace('bpm', '').strip())
             
             split = {
-                "mile": i + 1,
+                "split": i + 1,  # CHANGED from "mile" to "split"
                 "avg_hr": avg_hr,
                 "max_hr": avg_hr,  # Will be enhanced from FIT data if available
                 "avg_pace_s_per_mi": avg_pace_s_per_mi,
@@ -333,44 +340,11 @@ class GarminToDailyFiles:
         return full_content
 
     def generate_summary_section(self, daily_data: Dict) -> str:
-        """Generate the daily summary section"""
+        """Generate the daily summary section (REMOVED redundant totals)"""
         date = daily_data.get('date', '')
         
-        # Calculate totals from workouts
-        total_distance = 0
-        total_time = 0
-        total_elevation = 0
-        workout_count = len(daily_data.get('workout_metrics', []))
-        
-        for workout in daily_data.get('workout_metrics', []):
-            total_distance += workout.get('distance_mi', 0)
-            total_time += workout.get('moving_time_s', 0)
-            total_elevation += workout.get('elev_gain_ft', 0)
-        
-        # Format time
-        time_str = self.format_time_duration(total_time)
-        
-        # Format distance
-        distance_str = f"{total_distance:.1f} mi" if total_distance > 0 else "0 mi"
-        
-        # Steps
-        steps = daily_data.get('daily_metrics', {}).get('steps')
-        steps_str = f"{steps:,} steps" if steps else "0 steps"
-        
-        # Sleep summary
-        sleep_minutes = daily_data.get('sleep_metrics', {}).get('sleep_minutes')
-        if sleep_minutes:
-            hours = sleep_minutes // 60
-            mins = sleep_minutes % 60
-            sleep_str = f"{hours}h {mins}m sleep"
-        else:
-            sleep_str = "No sleep data available for this date"
-        
-        workout_text = "workout" if workout_count == 1 else "workouts"
-        
-        return f"""# {date} · Daily Summary
-**Totals:** {distance_str} • {time_str} • {total_elevation} ft ↑ • {steps_str}  
-**Sleep:** {sleep_str}"""
+        # NO MORE TOTALS/SLEEP SUMMARY - just the title
+        return f"# {date} · Daily Summary"
 
     def generate_structured_readable_sections(self, daily_data: Dict) -> str:
         """Generate human-readable structured sections"""
@@ -407,28 +381,37 @@ class GarminToDailyFiles:
         
         content.append("")  # Empty line
         
-        # Daily Metrics Section
+        # Daily Metrics Section (ALL VERTICAL)
         content.append("## Daily Metrics")
         daily = daily_data.get('daily_metrics', {})
         
         if daily.get('steps'):
             content.append(f"**Steps:** {daily['steps']:,}")
         
-        # Body Battery 
+        # Body Battery (vertical - separate lines)
         bb = daily.get('body_battery', {})
         if bb.get('charge') is not None or bb.get('drain') is not None:
-            bb_info = []
             if bb.get('charge'):
-                bb_info.append(f"Charged: +{bb['charge']}")
+                content.append(f"**Body Battery:** Charged: +{bb['charge']}")
             if bb.get('drain'):
-                bb_info.append(f"Drained: -{bb['drain']}")
-            content.append(f"**Body Battery:** {' • '.join(bb_info)}")
+                content.append(f"**Body Battery:** Drained: -{bb['drain']}")
         
         if daily.get('resting_hr'):
             content.append(f"**Resting Heart Rate:** {daily['resting_hr']} bpm")
         
+        # Lactate Threshold (NEW)
+        if daily.get('lactate_threshold'):
+            lt = daily['lactate_threshold']
+            lt_parts = []
+            if lt.get('heart_rate_bpm'):
+                lt_parts.append(f"{lt['heart_rate_bpm']} bpm")
+            if lt.get('speed_mps'):
+                lt_parts.append(f"{lt['speed_mps']} m/s")
+            if lt_parts:
+                content.append(f"**Lactate Threshold:** {' / '.join(lt_parts)}")
+        
         # Check if we have any daily metrics to show
-        if not any([daily.get('steps'), bb.get('charge'), bb.get('drain'), daily.get('resting_hr')]):
+        if not any([daily.get('steps'), bb.get('charge'), bb.get('drain'), daily.get('resting_hr'), daily.get('lactate_threshold')]):
             content.append("No daily wellness data available for this date")
         
         content.append("")  # Empty line
@@ -444,51 +427,45 @@ class GarminToDailyFiles:
                 else:
                     content.append(f"### {workout.get('type', 'Unknown')}")
                 
-                # Basic workout info
-                workout_info = []
+                # Basic workout info (VERTICAL)
                 if workout.get('distance_mi'):
-                    workout_info.append(f"{workout['distance_mi']:.2f} mi")
+                    content.append(f"**Distance:** {workout['distance_mi']:.2f} mi")
                 if workout.get('moving_time_s'):
-                    workout_info.append(self.format_time_duration(workout['moving_time_s']))
+                    time_str = self.format_time_duration(workout['moving_time_s'])
+                    content.append(f"**Time:** {time_str}")
                 if workout.get('elev_gain_ft'):
-                    workout_info.append(f"{workout['elev_gain_ft']} ft ↑")
-                
-                if workout_info:
-                    content.append(f"**Distance & Time:** {' • '.join(workout_info)}")
+                    content.append(f"**Elevation Gain:** {workout['elev_gain_ft']} ft")
                 
                 # Location (from enhanced API data)
                 if workout.get('location'):
                     content.append(f"**Location:** {workout['location']}")
                 
-                # Weather data (Visual Crossing API format)
+                # Weather data (VERTICAL format)
                 if workout.get('weather'):
                     weather = workout['weather']
-                    weather_info = []
+                    weather_parts = []
                     
                     # Temperature: "start_temp -> finish_temp"
                     if weather.get('temperature'):
                         temp = weather['temperature']
-                        temp_str = f"{temp.get('start', '?')}°F → {temp.get('end', '?')}°F"
-                        weather_info.append(temp_str)
+                        weather_parts.append(f"{temp.get('start', '?')}°F → {temp.get('end', '?')}°F")
                     
                     # Humidity: "start_humidity -> finish_humidity"
                     if weather.get('humidity'):
                         humidity = weather['humidity']
-                        humidity_str = f"{humidity.get('start', '?')}% → {humidity.get('end', '?')}% humidity"
-                        weather_info.append(humidity_str)
+                        weather_parts.append(f"{humidity.get('start', '?')}% → {humidity.get('end', '?')}% humidity")
                     
                     # Dew Point: "start_dew -> finish_dew"
                     if weather.get('dew_point'):
                         dew = weather['dew_point']
-                        dew_str = f"{dew.get('start', '?')}°F → {dew.get('end', '?')}°F dew point"
-                        weather_info.append(dew_str)
+                        weather_parts.append(f"{dew.get('start', '?')}°F → {dew.get('end', '?')}°F dew point")
                     
                     # Conditions
                     if weather.get('conditions'):
-                        weather_info.append(weather['conditions'])
+                        weather_parts.append(weather['conditions'])
                     
-                    if weather_info:
-                        content.append(f"**Weather:** {' • '.join(weather_info)}")
+                    if weather_parts:
+                        content.append(f"**Weather:** {' • '.join(weather_parts)}")
                 
                 # Heart rate
                 if workout.get('avg_hr') and workout.get('max_hr'):
@@ -501,118 +478,106 @@ class GarminToDailyFiles:
                     pace_str = self.format_pace(workout['avg_pace_s_per_mi'])
                     content.append(f"**Average Pace:** {pace_str}")
                 
-                # Training Effects (from enhanced API data)
+                # Training Effects (VERTICAL)
                 if workout.get('training_effects'):
                     effects = workout['training_effects']
-                    effects_info = []
+                    effects_parts = []
                     if effects.get('aerobic'):
-                        effects_info.append(f"Aerobic: {effects['aerobic']}")
+                        effects_parts.append(f"Aerobic: {effects['aerobic']}")
                     if effects.get('anaerobic'):
-                        effects_info.append(f"Anaerobic: {effects['anaerobic']}")
+                        effects_parts.append(f"Anaerobic: {effects['anaerobic']}")
                     if effects.get('label'):
-                        effects_info.append(f"({effects['label']})")
-                    if effects_info:
-                        content.append(f"**Training Effects:** {' • '.join(effects_info)}")
+                        effects_parts.append(f"({effects['label']})")
+                    if effects_parts:
+                        content.append(f"**Training Effects:** {' • '.join(effects_parts)}")
                 
-                # Running Dynamics (workout averages from API)
+                # Running Dynamics (VERTICAL)
                 if workout.get('running_dynamics'):
                     dynamics = workout['running_dynamics']
-                    dynamics_info = []
+                    dynamics_parts = []
                     if dynamics.get('cadence_spm'):
-                        dynamics_info.append(f"Cadence: {dynamics['cadence_spm']} spm")
+                        dynamics_parts.append(f"Cadence: {dynamics['cadence_spm']} spm")
                     if dynamics.get('stride_length_cm'):
-                        dynamics_info.append(f"Stride: {dynamics['stride_length_cm']} cm")
+                        dynamics_parts.append(f"Stride: {dynamics['stride_length_cm']} cm")
                     if dynamics.get('ground_contact_time_ms'):
-                        dynamics_info.append(f"GCT: {dynamics['ground_contact_time_ms']} ms")
+                        dynamics_parts.append(f"GCT: {dynamics['ground_contact_time_ms']} ms")
                     if dynamics.get('vertical_oscillation_mm'):
-                        dynamics_info.append(f"VO: {dynamics['vertical_oscillation_mm']} mm")
-                    if dynamics_info:
-                        content.append(f"**Running Dynamics:** {' • '.join(dynamics_info)}")
+                        dynamics_parts.append(f"VO: {dynamics['vertical_oscillation_mm']} mm")
+                    if dynamics_parts:
+                        content.append(f"**Running Dynamics:** {' • '.join(dynamics_parts)}")
                 
-                # Power Data (from API)
+                # Power Data (VERTICAL)
                 if workout.get('power'):
                     power = workout['power']
-                    power_info = []
+                    power_parts = []
                     if power.get('average'):
-                        power_info.append(f"Avg: {power['average']}W")
+                        power_parts.append(f"Avg: {power['average']}W")
                     if power.get('maximum'):
-                        power_info.append(f"Max: {power['maximum']}W")
+                        power_parts.append(f"Max: {power['maximum']}W")
                     if power.get('normalized'):
-                        power_info.append(f"NP: {power['normalized']}W")
-                    if power_info:
-                        content.append(f"**Power:** {' • '.join(power_info)}")
+                        power_parts.append(f"NP: {power['normalized']}W")
+                    if power_parts:
+                        content.append(f"**Power:** {' • '.join(power_parts)}")
                 
-                # Power Zones (from API - can be used to show pattern for HR zones)
-                if workout.get('power_zones'):
-                    zones_info = []
+                # HR Zones (NEW - replaces Power Zones)
+                if workout.get('hr_zones'):
+                    zones_parts = []
+                    for zone, time in workout['hr_zones'].items():
+                        if time != "0:00":  # Only show zones with time
+                            zone_num = zone.replace('zone_', '').upper()
+                            zones_parts.append(f"Z{zone_num}: {time}")
+                    if zones_parts:
+                        content.append(f"**HR Zones:** {' • '.join(zones_parts)}")
+                elif workout.get('power_zones'):
+                    # Fallback to power zones if HR zones not available
+                    zones_parts = []
                     for zone, time in workout['power_zones'].items():
                         if time != "0:00":  # Only show zones with time
                             zone_num = zone.replace('zone_', '').upper()
-                            zones_info.append(f"Z{zone_num}: {time}")
-                    if zones_info:
-                        content.append(f"**Power Zones:** {' • '.join(zones_info)}")
+                            zones_parts.append(f"Z{zone_num}: {time}")
+                    if zones_parts:
+                        content.append(f"**Power Zones:** {' • '.join(zones_parts)}")
                 
-                # Splits with enhanced running dynamics
+                # Splits TABLE FORMAT (NEW)
                 splits = workout.get('splits', [])
                 if splits:
                     content.append("")
-                    content.append("**Splits:**")
+                    content.append("## Splits")
                     content.append("")
                     
+                    # Table header
+                    content.append("| Split | Time | Pace | HR Avg | HR Max | Elev | Cadence | Stride | GCT | VO |")
+                    content.append("|-------|------|------|---------|---------|------|---------|--------|-----|-----|")
+                    
+                    # Table rows
                     for split in splits:
-                        mile = split.get('mile', '?')
+                        split_num = split.get('split', split.get('mile', '?'))  # Handle both old "mile" and new "split"
                         
-                        # Time formatting
+                        # Time
                         time_s = split.get('mile_time_s', 0)
                         time_str = self.format_time_duration(time_s) if time_s > 0 else "N/A"
                         
-                        # Pace formatting
+                        # Pace
                         pace_str = self.format_pace(split.get('avg_pace_s_per_mi')) if split.get('avg_pace_s_per_mi') else "N/A"
                         
                         # Heart rate
-                        hr_str = f"Avg: {split.get('avg_hr')} bpm" if split.get('avg_hr') else "N/A"
-                        if split.get('max_hr') and split.get('max_hr') != split.get('avg_hr'):
-                            hr_str += f", Max: {split['max_hr']} bpm"
+                        hr_avg = split.get('avg_hr', '') or 'N/A'
+                        hr_max = split.get('max_hr', '') or 'N/A'
                         
                         # Elevation
                         elev = split.get('elev_gain_ft', 0)
                         elev_str = f"{elev:+d} ft" if elev != 0 else "0 ft"
                         
-                        content.append(f"**Mile {mile}:** {time_str} • {pace_str} • {hr_str} • {elev_str}")
-                        
-                        # Running dynamics (per-split from enhanced API data)
+                        # Running dynamics
+                        cadence = stride = gct = vo = "N/A"
                         if split.get('running_dynamics'):
-                            dynamics = split['running_dynamics']
-                            dynamics_info = []
-                            if dynamics.get('cadence_spm'):
-                                dynamics_info.append(f"Cadence: {dynamics['cadence_spm']} spm")
-                            if dynamics.get('stride_length_cm'):
-                                dynamics_info.append(f"Stride: {dynamics['stride_length_cm']} cm")
-                            if dynamics.get('ground_contact_time_ms'):
-                                dynamics_info.append(f"GCT: {dynamics['ground_contact_time_ms']} ms")
-                            if dynamics.get('vertical_oscillation_mm'):
-                                dynamics_info.append(f"VO: {dynamics['vertical_oscillation_mm']} mm")
-                            if dynamics.get('vertical_ratio_percent'):
-                                dynamics_info.append(f"VR: {dynamics['vertical_ratio_percent']}%")
-                            
-                            if dynamics_info:
-                                content.append(f"  *Running Dynamics:* {' • '.join(dynamics_info)}")
+                            rd = split['running_dynamics']
+                            cadence = f"{rd.get('cadence_spm', 'N/A')} spm" if rd.get('cadence_spm') else "N/A"
+                            stride = f"{rd.get('stride_length_cm', 'N/A')} cm" if rd.get('stride_length_cm') else "N/A"
+                            gct = f"{rd.get('ground_contact_time_ms', 'N/A')} ms" if rd.get('ground_contact_time_ms') else "N/A"
+                            vo = f"{rd.get('vertical_oscillation_mm', 'N/A')} mm" if rd.get('vertical_oscillation_mm') else "N/A"
                         
-                        # Power data (per-split from enhanced API data)
-                        if split.get('power'):
-                            power = split['power']
-                            power_info = []
-                            if power.get('average'):
-                                power_info.append(f"Avg: {power['average']}W")
-                            if power.get('maximum'):
-                                power_info.append(f"Max: {power['maximum']}W")
-                            if power.get('normalized'):
-                                power_info.append(f"NP: {power['normalized']}W")
-                            
-                            if power_info:
-                                content.append(f"  *Power:* {' • '.join(power_info)}")
-                        
-                        content.append("")
+                        content.append(f"| {split_num} | {time_str} | {pace_str} | {hr_avg} | {hr_max} | {elev_str} | {cadence} | {stride} | {gct} | {vo} |")
                 
                 content.append("")  # Empty line between workouts
         

@@ -404,6 +404,15 @@ class GarminScraper:
             except Exception as e:
                 logger.debug(f"Could not get HRV data: {e}")
 
+            # Get lactate threshold (NEW - from user settings)
+            try:
+                lt_data = self.get_lactate_threshold()
+                if lt_data:
+                    wellness["lactateThreshold"] = lt_data
+                    logger.debug(f"Successfully got lactate threshold: {wellness['lactateThreshold']}")
+            except Exception as e:
+                logger.debug(f"Could not get lactate threshold: {e}")
+
             # Note: Removed self-evaluation data collection per user request
             
             if wellness:
@@ -424,6 +433,27 @@ class GarminScraper:
         hours = seconds // 3600
         minutes = (seconds % 3600) // 60
         return f"{hours}h {minutes}m"
+
+    def get_lactate_threshold(self) -> Optional[Dict]:
+        """Get current lactate threshold from user settings"""
+        try:
+            user_settings = garth.UserSettings.get()
+            if user_settings and user_settings.user_data:
+                lt_speed = user_settings.user_data.lactate_threshold_speed
+                lt_hr = user_settings.user_data.lactate_threshold_heart_rate
+                
+                if lt_speed or lt_hr:
+                    result = {}
+                    if lt_speed:
+                        result["speed_mps"] = round(lt_speed, 2)
+                    if lt_hr:
+                        result["heart_rate_bpm"] = int(lt_hr)
+                    
+                    logger.info(f"Retrieved lactate threshold: {result}")
+                    return result
+        except Exception as e:
+            logger.warning(f"Could not fetch lactate threshold: {e}")
+        return None
 
     def extract_enhanced_activity_data(self, activity: Dict, detailed_activity: Dict = None) -> Dict:
         """Extract enhanced data from API responses (training effects, running dynamics, location, etc.)"""
