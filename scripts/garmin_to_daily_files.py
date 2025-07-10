@@ -388,7 +388,7 @@ class GarminToDailyFiles:
             return ""
 
     def get_comprehensive_css(self) -> str:
-        """Generate comprehensive CSS for card-based design"""
+        """Generate refined CSS with all fixes"""
         return """<style>
 /* Global Styles */
 body { 
@@ -463,12 +463,12 @@ h1 {
     margin-bottom: 32px;
 }
 
-/* Base Card Styles */
+/* Base Card Styles - DARKER BACKGROUNDS */
 .metric-card {
-    background: linear-gradient(145deg, #ffffff, #f7fafc);
+    background: linear-gradient(145deg, #f1f5f9, #e2e8f0); /* DARKER */
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
     border-left: 5px solid #e2e8f0;
     transition: all 0.3s ease;
     position: relative;
@@ -477,23 +477,23 @@ h1 {
 
 .metric-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
 }
 
-/* Card Type Specific Styling */
+/* Card Type Specific Styling - DARKER BACKGROUNDS */
 .sleep-card { 
     border-left-color: #3b82f6;
-    background: linear-gradient(145deg, #eff6ff, #dbeafe);
+    background: linear-gradient(145deg, #e0f2fe, #b3e5fc); /* DARKER */
 }
 
 .wellness-card { 
     border-left-color: #10b981;
-    background: linear-gradient(145deg, #ecfdf5, #d1fae5);
+    background: linear-gradient(145deg, #dcfce7, #bbf7d0); /* DARKER */
 }
 
 .workout-card { 
     border-left-color: #f59e0b;
-    background: linear-gradient(145deg, #fffbeb, #fef3c7);
+    background: linear-gradient(145deg, #fef3c7, #fde68a); /* DARKER */
 }
 
 /* Card Headers */
@@ -504,66 +504,75 @@ h1 {
     display: flex;
     align-items: center;
     gap: 8px;
+    color: #1f2937;
 }
 
 .card-emoji {
     font-size: 1.5em;
 }
 
-/* Metric Grid */
+/* Metric Grid - IMPROVED SPACING */
 .metric-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 16px; /* INCREASED GAP */
     margin: 16px 0;
 }
 
+/* Metric Items - FIXED SPACING AND ALIGNMENT */
 .metric-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
-    background: rgba(255,255,255,0.7);
-    border-radius: 8px;
-    transition: background-color 0.2s ease;
-    border: 1px solid rgba(255,255,255,0.5);
+    padding: 14px 18px; /* INCREASED PADDING */
+    background: rgba(255,255,255,0.9); /* DARKER BACKGROUND */
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .metric-item:hover {
-    background: rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.95);
+    transform: translateY(-1px);
 }
 
+/* IMPROVED LABEL/VALUE DISTINCTION */
 .metric-label {
     font-weight: 600;
-    color: #4a5568;
-    font-size: 0.9em;
+    color: #6b7280; /* DARKER GRAY */
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .metric-value {
-    font-weight: 700;
-    color: #2d3748;
-    font-size: 1em;
+    font-weight: 800; /* BOLDER */
+    color: #1f2937; /* MUCH DARKER */
+    font-size: 1.1em; /* SLIGHTLY LARGER */
+    margin-left: 12px; /* PROPER SPACING */
 }
 
 .metric-primary {
-    font-size: 1.4em;
-    font-weight: 800;
-    color: #2d3748;
+    font-size: 1.6em;
+    font-weight: 900; /* EXTRA BOLD */
+    color: #1f2937;
     text-align: center;
-    margin: 8px 0;
-    padding: 16px;
-    background: rgba(255,255,255,0.8);
+    margin: 12px 0;
+    padding: 20px;
+    background: rgba(255,255,255,0.95); /* DARKER BACKGROUND */
     border-radius: 12px;
-    border: 2px solid rgba(255,255,255,0.6);
+    border: 2px solid rgba(255,255,255,0.9);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
 }
 
-/* Workout Detail Card */
+/* Workout Detail Card - DARKER BACKGROUND */
 .workout-detail-card {
     grid-column: 1 / -1;
-    background: linear-gradient(145deg, #ffffff, #f7fafc);
+    background: linear-gradient(145deg, #f1f5f9, #e2e8f0); /* DARKER */
     border-radius: 16px;
     padding: 32px;
-    box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.12);
     border-left: 5px solid #f59e0b;
     margin: 24px 0;
 }
@@ -576,10 +585,11 @@ h1 {
 }
 
 .workout-section {
-    background: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.9); /* DARKER BACKGROUND */
     border-radius: 12px;
     padding: 20px;
-    border: 1px solid rgba(229,231,235,0.8);
+    border: 1px solid rgba(229,231,235,0.9);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
 .section-title {
@@ -591,9 +601,17 @@ h1 {
     border-bottom: 2px solid #e5e7eb;
 }
 
-/* Enhanced Table Styling with MUCH DARKER alternating rows */
+/* ENHANCED TABLE STYLING - RESTORED PROPER FORMAT */
 .splits-section {
     margin: 32px 0;
+    grid-column: 1 / -1;
+}
+
+.splits-section h2 {
+    color: #1f2937;
+    font-weight: 700;
+    margin-bottom: 20px;
+    font-size: 1.4em;
 }
 
 table { 
@@ -602,7 +620,8 @@ table {
     margin: 20px 0;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+    background: white;
 }
 
 th { 
@@ -614,18 +633,20 @@ th {
     font-size: 0.9em;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    border: none;
 }
 
 td { 
-    padding: 12px 8px; 
+    padding: 12px 10px; 
     text-align: center; 
     border: 1px solid #d1d5db;
     font-weight: 500;
+    font-size: 0.9em;
 }
 
 /* MUCH DARKER alternating rows for better visibility */
 tr:nth-child(even) { 
-    background-color: #9ca3af; /* MUCH DARKER - was #f7fafc */
+    background-color: #9ca3af; /* MUCH DARKER GRAY */
     color: #1f2937;
 }
 
@@ -636,28 +657,31 @@ tr:nth-child(odd) {
 tr:hover { 
     background-color: #6b7280 !important; /* DARK HOVER */
     color: white !important;
-    transform: scale(1.02);
+    transform: scale(1.01);
     transition: all 0.2s ease;
 }
 
-/* Progressive Disclosure */
+/* Progressive Disclosure - IMPROVED STYLING */
 .collapsible {
     cursor: pointer;
     padding: 16px 20px;
-    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    background: linear-gradient(135deg, #e5e7eb, #d1d5db); /* DARKER */
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     text-align: left;
     outline: none;
     font-size: 1em;
     font-weight: 600;
-    margin: 8px 0;
+    margin: 12px 0;
     transition: all 0.3s ease;
     width: 100%;
+    color: #374151;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .collapsible:hover {
-    background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+    background: linear-gradient(135deg, #d1d5db, #9ca3af);
+    color: white;
 }
 
 .collapsible:after {
@@ -677,11 +701,20 @@ tr:hover {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-out;
-    background: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.9); /* DARKER */
     border-radius: 0 0 8px 8px;
 }
 
-/* Zone styling */
+/* EXPANDED COLLAPSIBLE CONTENT STYLING */
+.collapsible-content p {
+    margin: 12px 0;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 6px;
+    border-left: 3px solid #e5e7eb;
+}
+
+/* COLOR-CODED HR ZONES */
 .zone-distribution {
     display: flex;
     gap: 8px;
@@ -690,12 +723,39 @@ tr:hover {
 }
 
 .zone-item {
-    background: rgba(59, 130, 246, 0.1);
-    padding: 6px 12px;
+    padding: 8px 14px;
     border-radius: 20px;
     font-size: 0.85em;
     font-weight: 600;
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    border: 2px solid;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* COLOR-CODED BY ZONE */
+.zone-item.zone-1 {
+    background: linear-gradient(135deg, #6b7280, #9ca3af);
+    border-color: #4b5563;
+}
+
+.zone-item.zone-2 {
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    border-color: #2563eb;
+}
+
+.zone-item.zone-3 {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    border-color: #059669;
+}
+
+.zone-item.zone-4 {
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    border-color: #d97706;
+}
+
+.zone-item.zone-5 {
+    background: linear-gradient(135deg, #ef4444, #f87171);
+    border-color: #dc2626;
 }
 
 /* Responsive Design */
@@ -720,6 +780,14 @@ tr:hover {
     
     h1 {
         font-size: 2em;
+    }
+    
+    table {
+        font-size: 0.8em;
+    }
+    
+    th, td {
+        padding: 8px 6px;
     }
 }
 </style>"""
@@ -764,11 +832,15 @@ tr:hover {
                 content.append(f'<div class="metric-item"><span class="metric-label">REM</span><span class="metric-value">{sleep["rem_minutes"]}m</span></div>')
             content.append('</div>')
             
-            # Collapsible sleep details
+            # IMPROVED Sleep breakdown - All stages included and properly formatted
             content.append('<button class="collapsible">Sleep Breakdown</button>')
             content.append('<div class="collapsible-content">')
+            if sleep.get('deep_minutes'):
+                content.append(f'<p><strong>Deep Sleep:</strong> {sleep["deep_minutes"]}m</p>')
             if sleep.get('light_minutes'):
                 content.append(f'<p><strong>Light Sleep:</strong> {sleep["light_minutes"]}m</p>')
+            if sleep.get('rem_minutes'):
+                content.append(f'<p><strong>REM Sleep:</strong> {sleep["rem_minutes"]}m</p>')
             if sleep.get('awake_minutes'):
                 content.append(f'<p><strong>Awake Time:</strong> {sleep["awake_minutes"]}m</p>')
             content.append('</div>')
@@ -874,13 +946,13 @@ tr:hover {
                 pace_str = self.format_pace(workout['avg_pace_s_per_mi'])
                 content.append(f'<p><strong>Average Pace:</strong> {pace_str}</p>')
             
-            # HR Zones
+            # COLOR-CODED HR ZONES
             if workout.get('hr_zones'):
                 zone_html = '<div class="zone-distribution">'
                 for zone, time in workout['hr_zones'].items():
                     if time != "0:00":
-                        zone_num = zone.replace('zone_', '').upper()
-                        zone_html += f'<span class="zone-item">Z{zone_num}: {time}</span>'
+                        zone_num = zone.replace('zone_', '')
+                        zone_html += f'<span class="zone-item zone-{zone_num}">Z{zone_num.upper()}: {time}</span>'
                 zone_html += '</div>'
                 content.append(f'<p><strong>HR Zones:</strong></p>{zone_html}')
             content.append('</div>')
@@ -930,13 +1002,13 @@ tr:hover {
             
             content.append('</div>')  # End workout detail card
 
-            # Enhanced Splits Table
+            # RESTORED Splits Table with PROPER FORMATTING
             splits = workout.get('splits', [])
             if splits:
                 content.append('<div class="splits-section">')
                 content.append('<h2>📊 Split Analysis</h2>')
                 
-                # Table with enhanced styling
+                # Table with enhanced styling - RESTORED TABLE FORMAT
                 content.append("| Split | Time | Pace | HR Avg | HR Max | Elev | Cadence | Stride | GCT | VO |")
                 content.append("|-------|------|------|---------|---------|------|---------|--------|-----|-----|")
                 
