@@ -359,17 +359,15 @@ class GarminToDailyFiles:
                 mins = sleep['sleep_minutes'] % 60
                 content.append(f"**Total Sleep:** {hours}h {mins}m")
             
-            if any([sleep.get('deep_minutes'), sleep.get('light_minutes'), sleep.get('rem_minutes')]):
-                stages = []
-                if sleep.get('deep_minutes'):
-                    stages.append(f"Deep: {sleep['deep_minutes']}m")
-                if sleep.get('light_minutes'):
-                    stages.append(f"Light: {sleep['light_minutes']}m")
-                if sleep.get('rem_minutes'):
-                    stages.append(f"REM: {sleep['rem_minutes']}m")
-                if sleep.get('awake_minutes'):
-                    stages.append(f"Awake: {sleep['awake_minutes']}m")
-                content.append(f"**Sleep Stages:** {' • '.join(stages)}")
+            # Sleep stages - EACH ON SEPARATE LINE (TRULY VERTICAL)
+            if sleep.get('deep_minutes'):
+                content.append(f"**Deep Sleep:** {sleep['deep_minutes']}m")
+            if sleep.get('light_minutes'):
+                content.append(f"**Light Sleep:** {sleep['light_minutes']}m")
+            if sleep.get('rem_minutes'):
+                content.append(f"**REM Sleep:** {sleep['rem_minutes']}m")
+            if sleep.get('awake_minutes'):
+                content.append(f"**Awake Time:** {sleep['awake_minutes']}m")
             
             if sleep.get('sleep_score'):
                 content.append(f"**Sleep Score:** {sleep['sleep_score']}")
@@ -388,13 +386,12 @@ class GarminToDailyFiles:
         if daily.get('steps'):
             content.append(f"**Steps:** {daily['steps']:,}")
         
-        # Body Battery (vertical - separate lines)
+        # Body Battery (TRULY VERTICAL - separate lines for charge/drain)  
         bb = daily.get('body_battery', {})
-        if bb.get('charge') is not None or bb.get('drain') is not None:
-            if bb.get('charge'):
-                content.append(f"**Body Battery:** Charged: +{bb['charge']}")
-            if bb.get('drain'):
-                content.append(f"**Body Battery:** Drained: -{bb['drain']}")
+        if bb.get('charge') is not None and bb.get('charge') > 0:
+            content.append(f"**Body Battery Charge:** +{bb['charge']}")
+        if bb.get('drain') is not None and bb.get('drain') > 0:
+            content.append(f"**Body Battery Drain:** -{bb['drain']}")
         
         if daily.get('resting_hr'):
             content.append(f"**Resting Heart Rate:** {daily['resting_hr']} bpm")
@@ -440,32 +437,28 @@ class GarminToDailyFiles:
                 if workout.get('location'):
                     content.append(f"**Location:** {workout['location']}")
                 
-                # Weather data (VERTICAL format)
+                # Weather data (TRULY VERTICAL format - each metric on separate line)
                 if workout.get('weather'):
                     weather = workout['weather']
-                    weather_parts = []
                     
-                    # Temperature: "start_temp -> finish_temp"
+                    # Temperature on separate line
                     if weather.get('temperature'):
                         temp = weather['temperature']
-                        weather_parts.append(f"{temp.get('start', '?')}°F → {temp.get('end', '?')}°F")
+                        content.append(f"**Temperature:** {temp.get('start', '?')}°F → {temp.get('end', '?')}°F")
                     
-                    # Humidity: "start_humidity -> finish_humidity"
+                    # Humidity on separate line
                     if weather.get('humidity'):
                         humidity = weather['humidity']
-                        weather_parts.append(f"{humidity.get('start', '?')}% → {humidity.get('end', '?')}% humidity")
+                        content.append(f"**Humidity:** {humidity.get('start', '?')}% → {humidity.get('end', '?')}%")
                     
-                    # Dew Point: "start_dew -> finish_dew"
+                    # Dew Point on separate line
                     if weather.get('dew_point'):
                         dew = weather['dew_point']
-                        weather_parts.append(f"{dew.get('start', '?')}°F → {dew.get('end', '?')}°F dew point")
+                        content.append(f"**Dew Point:** {dew.get('start', '?')}°F → {dew.get('end', '?')}°F")
                     
-                    # Conditions
+                    # Conditions on separate line
                     if weather.get('conditions'):
-                        weather_parts.append(weather['conditions'])
-                    
-                    if weather_parts:
-                        content.append(f"**Weather:** {' • '.join(weather_parts)}")
+                        content.append(f"**Conditions:** {weather['conditions']}")
                 
                 # Heart rate
                 if workout.get('avg_hr') and workout.get('max_hr'):
@@ -478,46 +471,41 @@ class GarminToDailyFiles:
                     pace_str = self.format_pace(workout['avg_pace_s_per_mi'])
                     content.append(f"**Average Pace:** {pace_str}")
                 
-                # Training Effects (VERTICAL)
+                # Training Effects (TRULY VERTICAL - each effect on separate line)
                 if workout.get('training_effects'):
                     effects = workout['training_effects']
-                    effects_parts = []
                     if effects.get('aerobic'):
-                        effects_parts.append(f"Aerobic: {effects['aerobic']}")
+                        content.append(f"**Aerobic Training Effect:** {effects['aerobic']}")
                     if effects.get('anaerobic'):
-                        effects_parts.append(f"Anaerobic: {effects['anaerobic']}")
+                        content.append(f"**Anaerobic Training Effect:** {effects['anaerobic']}")
                     if effects.get('label'):
-                        effects_parts.append(f"({effects['label']})")
-                    if effects_parts:
-                        content.append(f"**Training Effects:** {' • '.join(effects_parts)}")
+                        content.append(f"**Training Effect Label:** {effects['label']}")
+                    if effects.get('training_load'):
+                        content.append(f"**Training Load:** {effects['training_load']}")
                 
-                # Running Dynamics (VERTICAL)
+                # Running Dynamics (TRULY VERTICAL - each metric on separate line)
                 if workout.get('running_dynamics'):
                     dynamics = workout['running_dynamics']
-                    dynamics_parts = []
                     if dynamics.get('cadence_spm'):
-                        dynamics_parts.append(f"Cadence: {dynamics['cadence_spm']} spm")
+                        content.append(f"**Cadence:** {dynamics['cadence_spm']} spm")
                     if dynamics.get('stride_length_cm'):
-                        dynamics_parts.append(f"Stride: {dynamics['stride_length_cm']} cm")
+                        content.append(f"**Stride Length:** {dynamics['stride_length_cm']} cm")
                     if dynamics.get('ground_contact_time_ms'):
-                        dynamics_parts.append(f"GCT: {dynamics['ground_contact_time_ms']} ms")
+                        content.append(f"**Ground Contact Time:** {dynamics['ground_contact_time_ms']} ms")
                     if dynamics.get('vertical_oscillation_mm'):
-                        dynamics_parts.append(f"VO: {dynamics['vertical_oscillation_mm']} mm")
-                    if dynamics_parts:
-                        content.append(f"**Running Dynamics:** {' • '.join(dynamics_parts)}")
+                        content.append(f"**Vertical Oscillation:** {dynamics['vertical_oscillation_mm']} mm")
+                    if dynamics.get('vertical_ratio_percent'):
+                        content.append(f"**Vertical Ratio:** {dynamics['vertical_ratio_percent']}%")
                 
-                # Power Data (VERTICAL)
+                # Power Data (TRULY VERTICAL - each metric on separate line)
                 if workout.get('power'):
                     power = workout['power']
-                    power_parts = []
                     if power.get('average'):
-                        power_parts.append(f"Avg: {power['average']}W")
+                        content.append(f"**Average Power:** {power['average']}W")
                     if power.get('maximum'):
-                        power_parts.append(f"Max: {power['maximum']}W")
+                        content.append(f"**Maximum Power:** {power['maximum']}W")
                     if power.get('normalized'):
-                        power_parts.append(f"NP: {power['normalized']}W")
-                    if power_parts:
-                        content.append(f"**Power:** {' • '.join(power_parts)}")
+                        content.append(f"**Normalized Power:** {power['normalized']}W")
                 
                 # HR Zones (NEW - replaces Power Zones)
                 if workout.get('hr_zones'):
@@ -538,11 +526,22 @@ class GarminToDailyFiles:
                     if zones_parts:
                         content.append(f"**Power Zones:** {' • '.join(zones_parts)}")
                 
-                # Splits TABLE FORMAT (NEW)
+                # Splits TABLE FORMAT (NEW with styling)
                 splits = workout.get('splits', [])
                 if splits:
                     content.append("")
                     content.append("## Splits")
+                    content.append("")
+                    
+                    # Add CSS styling for better table appearance
+                    content.append('<style>')
+                    content.append('table { border-collapse: collapse; width: 100%; margin: 16px 0; }')
+                    content.append('th { background-color: #2d3748; color: white; padding: 12px 8px; text-align: center; font-weight: bold; }')
+                    content.append('td { padding: 8px; text-align: center; border: 1px solid #e2e8f0; }')
+                    content.append('tr:nth-child(even) { background-color: #f7fafc; }')
+                    content.append('tr:nth-child(odd) { background-color: #ffffff; }')
+                    content.append('tr:hover { background-color: #edf2f7; }')
+                    content.append('</style>')
                     content.append("")
                     
                     # Table header

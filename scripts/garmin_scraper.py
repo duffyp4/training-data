@@ -919,22 +919,36 @@ class GarminScraper:
                     except (ValueError, TypeError):
                         pass
                 
-                # Extract per-split running dynamics
+                # Extract per-split running dynamics (ENHANCED - more fields and better handling)
                 running_dynamics = {}
                 dynamics_mapping = {
                     'averageRunCadence': 'cadence_spm',
+                    'averageRunningCadenceInStepsPerMinute': 'cadence_spm',  # Alternative field name
                     'groundContactTime': 'ground_contact_time_ms',
+                    'avgGroundContactTime': 'ground_contact_time_ms',  # Alternative field name
                     'strideLength': 'stride_length_cm',
+                    'avgStrideLength': 'stride_length_cm',  # Alternative field name  
                     'verticalOscillation': 'vertical_oscillation_mm',
-                    'verticalRatio': 'vertical_ratio_percent'
+                    'avgVerticalOscillation': 'vertical_oscillation_mm',  # Alternative field name
+                    'verticalRatio': 'vertical_ratio_percent',
+                    'avgVerticalRatio': 'vertical_ratio_percent'  # Alternative field name
                 }
                 
                 for api_field, our_field in dynamics_mapping.items():
-                    if split.get(api_field):
-                        running_dynamics[our_field] = round(float(split[api_field]), 2)
+                    if split.get(api_field) and split[api_field] is not None:
+                        try:
+                            value = float(split[api_field])
+                            if value > 0:  # Only include positive values
+                                running_dynamics[our_field] = round(value, 2)
+                                logger.debug(f"Split {i+1}: {our_field} = {value}")
+                        except (ValueError, TypeError):
+                            continue
                 
                 if running_dynamics:
                     lap_data["running_dynamics"] = running_dynamics
+                    logger.info(f"Added per-split running dynamics for split {i+1}: {list(running_dynamics.keys())}")
+                else:
+                    logger.debug(f"No per-split running dynamics found for split {i+1}")
                 
                 # Extract per-split power data
                 power_data = {}
