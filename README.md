@@ -222,6 +222,11 @@ The system ensures high data quality through:
 - **Weather Accuracy**: Historical weather data matched to workout time/location
 - **Comprehensive Logging**: Detailed logs for troubleshooting and verification
 
+## 📖 Documentation
+
+- **[Garmin Libraries Technical Reference](docs/GARMIN_LIBRARIES_REFERENCE.md)** - Comprehensive guide to garth and garminconnect libraries, including API changes, working methods, and troubleshooting
+- **[Cleanup Record](docs/CLEANUP_RECORD.md)** - Complete record of removed files and functionality during repository optimization
+
 ---
 
 **Last Updated:** July 2025  
