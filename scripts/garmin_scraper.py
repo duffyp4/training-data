@@ -342,49 +342,44 @@ class GarminScraper:
         return None
 
     def get_wellness_data(self, date: str) -> Optional[Dict]:
-        """Get wellness data for a specific date (removed self-evaluation)"""
+        """Get wellness data for a specific date using updated garth 0.5.17+ methods"""
         try:
             wellness = {}
             
-            # Get daily step data
+            # Get daily step data using new DailySteps helper
             try:
-                steps_data = garth.connectapi(f"/wellness-service/wellness/dailySummaryChart/{date}")
-                if steps_data and steps_data.get('summaryList'):
-                    for summary in steps_data['summaryList']:
-                        if summary.get('summaryId') == 'steps':
-                            wellness["dailySteps"] = summary.get('value', 0)
-                            break
-                # Fallback to user summary endpoint
-                if 'dailySteps' not in wellness:
-                    user_summary = garth.connectapi(f"/usersummary-service/usersummary/daily/{date}")
-                    if user_summary and user_summary.get('totalSteps'):
-                        wellness["dailySteps"] = user_summary['totalSteps']
+                steps_list = garth.DailySteps.list(date)
+                if steps_list and len(steps_list) > 0:
+                    wellness["dailySteps"] = steps_list[0].total_steps
+                    logger.debug(f"Successfully got steps: {wellness['dailySteps']}")
             except Exception as e:
                 logger.debug(f"Could not get step data: {e}")
             
-            # Get body battery data
+            # Get body battery data using new DailyBodyBatteryStress helper
             try:
-                bb_data = garth.connectapi(f"/wellness-service/wellness/bodyBattery/reports/daily/{date}")
-                if bb_data and bb_data.get('bodyBatteryValuesArray'):
-                    # Calculate charge and drain from the battery values
-                    values = bb_data['bodyBatteryValuesArray']
-                    if values:
-                        first_val = values[0].get('charged', 0)
-                        last_val = values[-1].get('charged', 0)
-                        if last_val > first_val:
+                bb_data = garth.DailyBodyBatteryStress.get(date)
+                if bb_data:
+                    # Calculate charge and drain from current, max, min values
+                    max_bb = bb_data.max_body_battery
+                    min_bb = bb_data.min_body_battery
+                    current_bb = bb_data.current_body_battery
+                    
+                    if max_bb is not None and min_bb is not None:
+                        if current_bb and current_bb > min_bb:
                             wellness["bodyBattery"] = {
-                                "charge": last_val - first_val,
+                                "charge": current_bb - min_bb,
                                 "drain": 0
                             }
                         else:
                             wellness["bodyBattery"] = {
                                 "charge": 0,
-                                "drain": first_val - last_val
+                                "drain": max_bb - (current_bb or min_bb)
                             }
+                        logger.debug(f"Successfully got body battery: max={max_bb}, min={min_bb}, current={current_bb}")
             except Exception as e:
                 logger.debug(f"Could not get body battery data: {e}")
             
-            # Get stress data
+            # Get stress data (keep existing approach - this was working)
             try:
                 stress_data = garth.connectapi(f"/wellness-service/wellness/dailyStress/{date}")
                 if stress_data and stress_data.get('overallStressLevel'):
@@ -392,17 +387,16 @@ class GarminScraper:
             except Exception as e:
                 logger.debug(f"Could not get stress data: {e}")
             
-            # Get resting heart rate
+            # Get resting heart rate using working endpoint
             try:
-                rhr_data = garth.connectapi(f"/wellness-service/wellness/dailyHeartRate/{date}")
-                if rhr_data:
-                    log_api_response(f"/wellness-service/wellness/dailyHeartRate/{date}", rhr_data, date)
-                    if rhr_data.get('restingHeartRate'):
-                        wellness["restingHeartRate"] = rhr_data['restingHeartRate']
+                rhr_data = garth.connectapi("/wellness-service/wellness/dailyHeartRate", params={"date": date})
+                if rhr_data and rhr_data.get('restingHeartRate'):
+                    wellness["restingHeartRate"] = rhr_data['restingHeartRate']
+                    logger.debug(f"Successfully got resting HR: {wellness['restingHeartRate']}")
             except Exception as e:
                 logger.debug(f"Could not get resting heart rate: {e}")
             
-            # Get HRV data
+            # Get HRV data (keep existing - this was working)
             try:
                 hrv_data = garth.connectapi(f"/hrv-service/hrv/{date}")
                 if hrv_data and hrv_data.get('hrvSummary', {}).get('weeklyAvg'):
@@ -413,8 +407,10 @@ class GarminScraper:
             # Note: Removed self-evaluation data collection per user request
             
             if wellness:
-                logger.info(f"Successfully retrieved wellness data for {date}")
+                logger.info(f"Successfully retrieved wellness data for {date}: {list(wellness.keys())}")
                 return wellness
+            else:
+                logger.warning(f"No wellness data retrieved for {date}")
             
         except Exception as e:
             logger.warning(f"Could not fetch wellness data for {date}: {e}")
@@ -831,9 +827,7 @@ class GarminScraper:
             # Use the splits endpoint to get detailed lap data
             splits_data = garth.connectapi(f"/activity-service/activity/{activity_id}/splits")
             
-            if splits_data and isinstance(splits_data, dict):
-                log_api_response(f"/activity-service/activity/{activity_id}/splits", splits_data, str(activity_id))
-            else:
+            if not splits_data or not isinstance(splits_data, dict):
                 logger.debug(f"No splits data found for activity {activity_id}")
                 return []
             
@@ -1012,9 +1006,7 @@ class GarminScraper:
                 # Get detailed activity data
                 try:
                     detailed_activity = garth.connectapi(f"/activity-service/activity/{activity_id}")
-                    if detailed_activity:
-                        log_api_response(f"/activity-service/activity/{activity_id}", detailed_activity, str(activity_id))
-                    else:
+                    if not detailed_activity:
                         logger.warning(f"Could not get detailed data for activity {activity_id}")
                         detailed_activity = activity
                 except Exception as e:
