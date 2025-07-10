@@ -443,6 +443,64 @@ class GarminToDailyFiles:
         html += '</tbody></table>'
         return html
 
+    def generate_mobile_cards_html(self, splits: List[Dict]) -> str:
+        """Generate mobile-friendly cards for splits data"""
+        if not splits:
+            return ""
+        
+        html = '<div class="mobile-splits">'
+        
+        for i, split in enumerate(splits, 1):
+            html += f'<div class="mobile-split-card">'
+            html += f'<div class="mobile-split-header">Split {i}</div>'
+            
+            # Time
+            time_s = split.get('mile_time_s', 0)
+            if time_s > 0:
+                if time_s >= 60:
+                    minutes = time_s // 60
+                    seconds = time_s % 60
+                    time_str = f"{minutes}m {seconds}s"
+                else:
+                    time_str = f"{time_s}s"
+            else:
+                time_str = "N/A"
+            html += f'<div class="mobile-split-row"><span class="mobile-split-label">Time</span><span class="mobile-split-value">{time_str}</span></div>'
+            
+            # Pace
+            if split.get('avg_pace_s_per_mi'):
+                pace_s = split['avg_pace_s_per_mi']
+                pace_min = pace_s // 60
+                pace_sec = pace_s % 60
+                pace_str = f"{pace_min}:{pace_sec:02d}/mi"
+            else:
+                pace_str = "N/A"
+            html += f'<div class="mobile-split-row"><span class="mobile-split-label">Pace</span><span class="mobile-split-value">{pace_str}</span></div>'
+            
+            # Heart Rate
+            hr_avg = split.get('avg_hr', '') or 'N/A'
+            hr_max = split.get('max_hr', '') or 'N/A'
+            html += f'<div class="mobile-split-row"><span class="mobile-split-label">HR Avg</span><span class="mobile-split-value">{hr_avg}</span></div>'
+            html += f'<div class="mobile-split-row"><span class="mobile-split-label">HR Max</span><span class="mobile-split-value">{hr_max}</span></div>'
+            
+            # Elevation
+            elev = split.get('elev_gain_ft', 0)
+            elev_str = f"{elev:+d} ft" if elev != 0 else "0 ft"
+            html += f'<div class="mobile-split-row"><span class="mobile-split-label">Elevation</span><span class="mobile-split-value">{elev_str}</span></div>'
+            
+            # Running dynamics if available
+            if split.get('running_dynamics'):
+                rd = split['running_dynamics']
+                if rd.get('cadence_spm'):
+                    html += f'<div class="mobile-split-row"><span class="mobile-split-label">Cadence</span><span class="mobile-split-value">{rd["cadence_spm"]:.0f} spm</span></div>'
+                if rd.get('stride_length_cm'):
+                    html += f'<div class="mobile-split-row"><span class="mobile-split-label">Stride</span><span class="mobile-split-value">{rd["stride_length_cm"]:.0f} cm</span></div>'
+            
+            html += '</div>'  # Close card
+        
+        html += '</div>'  # Close mobile-splits
+        return html
+
     def get_navigation_buttons(self, current_date: str) -> str:
         """Generate navigation buttons with PROPER paths (fixes 404 issue)"""
         try:
@@ -723,7 +781,7 @@ h1 {
     border-bottom: 2px solid #e5e7eb;
 }
 
-/* PROPER HTML TABLE STYLING */
+/* ENHANCED TABLE STYLING TO MATCH CARD DESIGN */
 .splits-section {
     margin: 32px 0;
     grid-column: 1 / -1;
@@ -732,19 +790,34 @@ h1 {
 .splits-section h2 {
     color: #1f2937;
     font-weight: 700;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
     font-size: 1.4em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-/* HTML Table Styles */
+/* CARD-STYLE TABLE CONTAINER */
+.table-container {
+    background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+    border-left: 5px solid #10b981;
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+/* IMPROVED HTML TABLE STYLES */
 .splits-table {
     border-collapse: collapse;
     width: 100%;
-    margin: 20px 0;
+    margin: 0;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     background: white;
+    font-family: inherit;
 }
 
 .splits-table th {
@@ -753,35 +826,133 @@ h1 {
     padding: 16px 12px;
     text-align: center;
     font-weight: 700;
-    font-size: 0.9em;
+    font-size: 0.85em;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border: none;
+    position: relative;
+}
+
+.splits-table th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.splits-table th:last-child {
+    border-top-right-radius: 12px;
 }
 
 .splits-table td {
-    padding: 12px 10px;
+    padding: 14px 10px;
     text-align: center;
-    border: 1px solid #d1d5db;
+    border: 1px solid #e5e7eb;
     font-weight: 500;
     font-size: 0.9em;
+    transition: all 0.2s ease;
 }
 
-/* MUCH DARKER alternating rows for better visibility */
+/* ENHANCED alternating rows with better contrast */
 .splits-table tr:nth-child(even) {
-    background-color: #9ca3af; /* MUCH DARKER GRAY */
-    color: #1f2937;
+    background: linear-gradient(145deg, #f8fafc, #f1f5f9);
 }
 
 .splits-table tr:nth-child(odd) {
-    background-color: #ffffff;
+    background: #ffffff;
 }
 
-.splits-table tr:hover {
-    background-color: #6b7280 !important; /* DARK HOVER */
-    color: white !important;
+.splits-table tbody tr:hover {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe) !important;
     transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
     transition: all 0.2s ease;
+}
+
+/* MOBILE-RESPONSIVE TABLE DESIGN */
+@media (max-width: 768px) {
+    /* Hide the table and show mobile cards instead */
+    .splits-table {
+        display: none;
+    }
+    
+    /* Mobile card-based layout */
+    .mobile-splits {
+        display: block;
+    }
+    
+    .mobile-split-card {
+        background: rgba(255,255,255,0.95);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(229,231,235,0.9);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+    
+    .mobile-split-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .mobile-split-header {
+        font-weight: 700;
+        font-size: 1.1em;
+        color: #1f2937;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e5e7eb;
+        text-align: center;
+    }
+    
+    .mobile-split-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .mobile-split-row:last-child {
+        border-bottom: none;
+    }
+    
+    .mobile-split-label {
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .mobile-split-value {
+        font-weight: 700;
+        color: #1f2937;
+        font-size: 0.95em;
+    }
+    
+    /* Smaller table container padding on mobile */
+    .table-container {
+        padding: 16px;
+        margin: 16px 0;
+    }
+}
+
+/* DESKTOP: Hide mobile cards */
+@media (min-width: 769px) {
+    .mobile-splits {
+        display: none;
+    }
+}
+
+/* EXTRA WIDE SCREENS: Better table spacing */
+@media (min-width: 1200px) {
+    .splits-table th,
+    .splits-table td {
+        padding: 16px 14px;
+    }
+    
+    .table-container {
+        padding: 32px;
+    }
 }
 
 /* Progressive Disclosure - IMPROVED STYLING */
@@ -1125,12 +1296,15 @@ h1 {
             
             content.append('</div>')  # End workout detail card
 
-            # PROPER HTML TABLE for Splits
+            # IMPROVED HTML TABLE for Splits with Card Styling
             splits = workout.get('splits', [])
             if splits:
                 content.append('<div class="splits-section">')
                 content.append('<h2>📊 Split Analysis</h2>')
+                content.append('<div class="table-container">')
                 content.append(self.generate_html_table(splits))
+                content.append(self.generate_mobile_cards_html(splits))
+                content.append('</div>')
                 content.append('</div>')  # End splits section
 
         # JavaScript for collapsible functionality
