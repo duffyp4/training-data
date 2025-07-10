@@ -346,239 +346,655 @@ class GarminToDailyFiles:
         # NO MORE TOTALS/SLEEP SUMMARY - just the title
         return f"# {date} · Daily Summary"
 
+    def get_navigation_buttons(self, current_date: str) -> str:
+        """Generate navigation buttons with PROPER paths (fixes 404 issue)"""
+        try:
+            from datetime import datetime, timedelta
+            dt = datetime.strptime(current_date, '%Y-%m-%d')
+            prev_date = dt - timedelta(days=1)
+            next_date = dt + timedelta(days=1)
+            
+            # Use proper relative paths WITHOUT .md extension
+            prev_path = f"../07/{prev_date.day:02d}" if prev_date.month == 7 else f"../{prev_date.month:02d}/{prev_date.day:02d}"
+            next_path = f"{next_date.day:02d}" if next_date.month == dt.month else f"../{next_date.month:02d}/{next_date.day:02d}"
+            
+            # Check if files exist
+            from pathlib import Path
+            prev_file_path = Path(f"data/{prev_date.year}/{prev_date.month:02d}/{prev_date.day:02d}.md")
+            next_file_path = Path(f"data/{next_date.year}/{next_date.month:02d}/{next_date.day:02d}.md")
+            
+            prev_exists = prev_file_path.exists()
+            next_exists = next_file_path.exists()
+            
+            nav_html = '<div class="navigation-bar">'
+            
+            if prev_exists:
+                nav_html += f'<a href="{prev_path}" class="nav-button nav-prev">← {prev_date.strftime("%b %d")}</a>'
+            else:
+                nav_html += '<span class="nav-disabled">← Previous</span>'
+            
+            nav_html += f'<span class="nav-current">{dt.strftime("%B %d, %Y")}</span>'
+            
+            if next_exists:
+                nav_html += f'<a href="{next_path}" class="nav-button nav-next">{next_date.strftime("%b %d")} →</a>'
+            else:
+                nav_html += '<span class="nav-disabled">Next →</span>'
+            
+            nav_html += '</div>'
+            return nav_html
+            
+        except Exception as e:
+            logger.warning(f"Could not generate navigation for date {current_date}: {e}")
+            return ""
+
+    def get_comprehensive_css(self) -> str:
+        """Generate comprehensive CSS for card-based design"""
+        return """<style>
+/* Global Styles */
+body { 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #2d3748;
+    background-color: #f7fafc;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Navigation Bar */
+.navigation-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 0 32px 0;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.nav-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: rgba(255,255,255,0.2);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.nav-button:hover {
+    background-color: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.nav-current {
+    font-weight: 700;
+    font-size: 1.1em;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.nav-disabled {
+    color: rgba(255,255,255,0.5);
+    font-weight: 500;
+}
+
+/* Page Title */
+h1 {
+    font-size: 2.5em;
+    font-weight: 800;
+    color: #2d3748;
+    margin: 0 0 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Card Container */
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+/* Base Card Styles */
+.metric-card {
+    background: linear-gradient(145deg, #ffffff, #f7fafc);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border-left: 5px solid #e2e8f0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+/* Card Type Specific Styling */
+.sleep-card { 
+    border-left-color: #3b82f6;
+    background: linear-gradient(145deg, #eff6ff, #dbeafe);
+}
+
+.wellness-card { 
+    border-left-color: #10b981;
+    background: linear-gradient(145deg, #ecfdf5, #d1fae5);
+}
+
+.workout-card { 
+    border-left-color: #f59e0b;
+    background: linear-gradient(145deg, #fffbeb, #fef3c7);
+}
+
+/* Card Headers */
+.card-header {
+    font-size: 1.3em;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-emoji {
+    font-size: 1.5em;
+}
+
+/* Metric Grid */
+.metric-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    border: 1px solid rgba(255,255,255,0.5);
+}
+
+.metric-item:hover {
+    background: rgba(255,255,255,0.9);
+}
+
+.metric-label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.9em;
+}
+
+.metric-value {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 1em;
+}
+
+.metric-primary {
+    font-size: 1.4em;
+    font-weight: 800;
+    color: #2d3748;
+    text-align: center;
+    margin: 8px 0;
+    padding: 16px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.6);
+}
+
+/* Workout Detail Card */
+.workout-detail-card {
+    grid-column: 1 / -1;
+    background: linear-gradient(145deg, #ffffff, #f7fafc);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+    border-left: 5px solid #f59e0b;
+    margin: 24px 0;
+}
+
+.workout-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin: 24px 0;
+}
+
+.workout-section {
+    background: rgba(255,255,255,0.8);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(229,231,235,0.8);
+}
+
+.section-title {
+    font-weight: 700;
+    font-size: 1.1em;
+    color: #374151;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Enhanced Table Styling with MUCH DARKER alternating rows */
+.splits-section {
+    margin: 32px 0;
+}
+
+table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    margin: 20px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+th { 
+    background: linear-gradient(135deg, #1f2937, #374151);
+    color: white; 
+    padding: 16px 12px; 
+    text-align: center; 
+    font-weight: 700;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+td { 
+    padding: 12px 8px; 
+    text-align: center; 
+    border: 1px solid #d1d5db;
+    font-weight: 500;
+}
+
+/* MUCH DARKER alternating rows for better visibility */
+tr:nth-child(even) { 
+    background-color: #9ca3af; /* MUCH DARKER - was #f7fafc */
+    color: #1f2937;
+}
+
+tr:nth-child(odd) { 
+    background-color: #ffffff; 
+}
+
+tr:hover { 
+    background-color: #6b7280 !important; /* DARK HOVER */
+    color: white !important;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+/* Progressive Disclosure */
+.collapsible {
+    cursor: pointer;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    border: none;
+    border-radius: 8px;
+    text-align: left;
+    outline: none;
+    font-size: 1em;
+    font-weight: 600;
+    margin: 8px 0;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.collapsible:hover {
+    background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+}
+
+.collapsible:after {
+    content: '\\002B';
+    color: #6b7280;
+    font-weight: bold;
+    float: right;
+    margin-left: 5px;
+}
+
+.active:after {
+    content: "\\2212";
+}
+
+.collapsible-content {
+    padding: 0 20px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: rgba(255,255,255,0.5);
+    border-radius: 0 0 8px 8px;
+}
+
+/* Zone styling */
+.zone-distribution {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+}
+
+.zone-item {
+    background: rgba(59, 130, 246, 0.1);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .workout-sections {
+        grid-template-columns: 1fr;
+    }
+    
+    .metric-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .navigation-bar {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+    
+    h1 {
+        font-size: 2em;
+    }
+}
+</style>"""
+
     def generate_structured_readable_sections(self, daily_data: Dict) -> str:
-        """Generate human-readable structured sections"""
+        """Generate beautiful card-based layout sections"""
         content = []
+        date = daily_data.get('date', '')
         
-        # Sleep Metrics Section
-        content.append("## Sleep Metrics")
+        # Add comprehensive CSS
+        content.append(self.get_comprehensive_css())
+        content.append("")
+        
+        # Add navigation buttons with proper paths
+        nav_buttons = self.get_navigation_buttons(date)
+        if nav_buttons:
+            content.append(nav_buttons)
+            content.append("")
+        
+        # Three-column card container
+        content.append('<div class="card-container">')
+        
+        # Sleep Health Card
+        content.append('<div class="metric-card sleep-card">')
+        content.append('<div class="card-header"><span class="card-emoji">🛌</span>Sleep Health</div>')
+        
         sleep = daily_data.get('sleep_metrics', {})
         if any(v is not None for v in sleep.values()):
             if sleep.get('sleep_minutes'):
                 hours = sleep['sleep_minutes'] // 60
                 mins = sleep['sleep_minutes'] % 60
-                content.append(f"**Total Sleep:** {hours}h {mins}m")
+                content.append(f'<div class="metric-primary">{hours}h {mins}m total</div>')
             
-            # Sleep stages - EACH ON SEPARATE LINE (TRULY VERTICAL)
-            if sleep.get('deep_minutes'):
-                content.append(f"**Deep Sleep:** {sleep['deep_minutes']}m")
-            if sleep.get('light_minutes'):
-                content.append(f"**Light Sleep:** {sleep['light_minutes']}m")
-            if sleep.get('rem_minutes'):
-                content.append(f"**REM Sleep:** {sleep['rem_minutes']}m")
-            if sleep.get('awake_minutes'):
-                content.append(f"**Awake Time:** {sleep['awake_minutes']}m")
-            
+            content.append('<div class="metric-grid">')
             if sleep.get('sleep_score'):
-                content.append(f"**Sleep Score:** {sleep['sleep_score']}")
-            
+                content.append(f'<div class="metric-item"><span class="metric-label">Score</span><span class="metric-value">{sleep["sleep_score"]}</span></div>')
             if sleep.get('hrv_night_avg'):
-                content.append(f"**HRV:** {sleep['hrv_night_avg']} ms")
+                content.append(f'<div class="metric-item"><span class="metric-label">HRV</span><span class="metric-value">{sleep["hrv_night_avg"]}ms</span></div>')
+            if sleep.get('deep_minutes'):
+                content.append(f'<div class="metric-item"><span class="metric-label">Deep</span><span class="metric-value">{sleep["deep_minutes"]}m</span></div>')
+            if sleep.get('rem_minutes'):
+                content.append(f'<div class="metric-item"><span class="metric-label">REM</span><span class="metric-value">{sleep["rem_minutes"]}m</span></div>')
+            content.append('</div>')
+            
+            # Collapsible sleep details
+            content.append('<button class="collapsible">Sleep Breakdown</button>')
+            content.append('<div class="collapsible-content">')
+            if sleep.get('light_minutes'):
+                content.append(f'<p><strong>Light Sleep:</strong> {sleep["light_minutes"]}m</p>')
+            if sleep.get('awake_minutes'):
+                content.append(f'<p><strong>Awake Time:</strong> {sleep["awake_minutes"]}m</p>')
+            content.append('</div>')
         else:
-            content.append("No sleep data available for this date")
+            content.append('<div class="metric-primary">No sleep data</div>')
         
-        content.append("")  # Empty line
+        content.append('</div>')  # End sleep card
+
+        # Daily Wellness Card
+        content.append('<div class="metric-card wellness-card">')
+        content.append('<div class="card-header"><span class="card-emoji">⚡</span>Daily Wellness</div>')
         
-        # Daily Metrics Section (ALL VERTICAL)
-        content.append("## Daily Metrics")
         daily = daily_data.get('daily_metrics', {})
-        
         if daily.get('steps'):
-            content.append(f"**Steps:** {daily['steps']:,}")
+            content.append(f'<div class="metric-primary">{daily["steps"]:,} steps</div>')
         
-        # Body Battery (TRULY VERTICAL - separate lines for charge/drain)  
+        content.append('<div class="metric-grid">')
         bb = daily.get('body_battery', {})
         if bb.get('charge') is not None and bb.get('charge') > 0:
-            content.append(f"**Body Battery Charge:** +{bb['charge']}")
-        if bb.get('drain') is not None and bb.get('drain') > 0:
-            content.append(f"**Body Battery Drain:** -{bb['drain']}")
+            content.append(f'<div class="metric-item"><span class="metric-label">Battery</span><span class="metric-value">+{bb["charge"]}</span></div>')
+        elif bb.get('drain') is not None and bb.get('drain') > 0:
+            content.append(f'<div class="metric-item"><span class="metric-label">Battery</span><span class="metric-value">-{bb["drain"]}</span></div>')
         
         if daily.get('resting_hr'):
-            content.append(f"**Resting Heart Rate:** {daily['resting_hr']} bpm")
+            content.append(f'<div class="metric-item"><span class="metric-label">RHR</span><span class="metric-value">{daily["resting_hr"]} bpm</span></div>')
         
-        # Lactate Threshold (NEW)
         if daily.get('lactate_threshold'):
             lt = daily['lactate_threshold']
-            lt_parts = []
             if lt.get('heart_rate_bpm'):
-                lt_parts.append(f"{lt['heart_rate_bpm']} bpm")
-            if lt.get('speed_mps'):
-                lt_parts.append(f"{lt['speed_mps']} m/s")
-            if lt_parts:
-                content.append(f"**Lactate Threshold:** {' / '.join(lt_parts)}")
+                content.append(f'<div class="metric-item"><span class="metric-label">LT</span><span class="metric-value">{lt["heart_rate_bpm"]} bpm</span></div>')
+        content.append('</div>')
         
-        # Check if we have any daily metrics to show
-        if not any([daily.get('steps'), bb.get('charge'), bb.get('drain'), daily.get('resting_hr'), daily.get('lactate_threshold')]):
-            content.append("No daily wellness data available for this date")
-        
-        content.append("")  # Empty line
-        
-        # Workout Details Section
+        content.append('</div>')  # End wellness card
+
+        # Workout Stats Card
         workouts = daily_data.get('workout_metrics', [])
         if workouts:
-            content.append("## Workout Details")
+            workout = workouts[0]  # Primary workout
+            content.append('<div class="metric-card workout-card">')
+            content.append(f'<div class="card-header"><span class="card-emoji">🏃</span>{workout.get("type", "Workout")} Stats</div>')
             
-            for i, workout in enumerate(workouts):
-                if len(workouts) > 1:
-                    content.append(f"### Workout {i+1}: {workout.get('type', 'Unknown')}")
-                else:
-                    content.append(f"### {workout.get('type', 'Unknown')}")
+            if workout.get('distance_mi'):
+                content.append(f'<div class="metric-primary">{workout["distance_mi"]:.2f} mi</div>')
+            
+            content.append('<div class="metric-grid">')
+            if workout.get('moving_time_s'):
+                time_str = self.format_time_duration(workout['moving_time_s'])
+                content.append(f'<div class="metric-item"><span class="metric-label">Time</span><span class="metric-value">{time_str}</span></div>')
+            if workout.get('avg_pace_s_per_mi'):
+                pace_str = self.format_pace(workout['avg_pace_s_per_mi'])
+                content.append(f'<div class="metric-item"><span class="metric-label">Pace</span><span class="metric-value">{pace_str}</span></div>')
+            if workout.get('avg_hr'):
+                content.append(f'<div class="metric-item"><span class="metric-label">Avg HR</span><span class="metric-value">{workout["avg_hr"]} bpm</span></div>')
+            if workout.get('training_effects', {}).get('label'):
+                label = workout['training_effects']['label']
+                content.append(f'<div class="metric-item"><span class="metric-label">Type</span><span class="metric-value">{label}</span></div>')
+            content.append('</div>')
+            
+            content.append('</div>')  # End workout card
+        
+        content.append('</div>')  # End card container
+
+        # Detailed Workout Card (Full Width)
+        if workouts:
+            content.append('<div class="workout-detail-card">')
+            content.append(f'<div class="card-header"><span class="card-emoji">🏃‍♂️</span>{workout.get("type", "Workout")} Details - {workout.get("location", "Unknown Location")}</div>')
+            
+            content.append('<div class="workout-sections">')
+            
+            # Course Section
+            content.append('<div class="workout-section">')
+            content.append('<div class="section-title">📍 Course</div>')
+            if workout.get('distance_mi'):
+                content.append(f'<p><strong>Distance:</strong> {workout["distance_mi"]:.2f} mi</p>')
+            if workout.get('elev_gain_ft'):
+                content.append(f'<p><strong>Elevation:</strong> {workout["elev_gain_ft"]} ft gain</p>')
+            if workout.get('moving_time_s'):
+                time_str = self.format_time_duration(workout['moving_time_s'])
+                content.append(f'<p><strong>Duration:</strong> {time_str}</p>')
+            content.append('</div>')
+            
+            # Conditions Section
+            if workout.get('weather'):
+                content.append('<div class="workout-section">')
+                content.append('<div class="section-title">🌤️ Conditions</div>')
+                weather = workout['weather']
+                if weather.get('temperature'):
+                    temp = weather['temperature']
+                    content.append(f'<p><strong>Temperature:</strong> {temp.get("start", "?")}°F → {temp.get("end", "?")}°F</p>')
+                if weather.get('conditions'):
+                    content.append(f'<p><strong>Weather:</strong> {weather["conditions"]}</p>')
+                if weather.get('humidity'):
+                    humidity = weather['humidity']
+                    content.append(f'<p><strong>Humidity:</strong> {humidity.get("start", "?")}% → {humidity.get("end", "?")}%</p>')
+                content.append('</div>')
+            
+            # Performance Section
+            content.append('<div class="workout-section">')
+            content.append('<div class="section-title">❤️ Performance</div>')
+            if workout.get('avg_hr') and workout.get('max_hr'):
+                content.append(f'<p><strong>Heart Rate:</strong> {workout["avg_hr"]} avg, {workout["max_hr"]} max</p>')
+            if workout.get('avg_pace_s_per_mi'):
+                pace_str = self.format_pace(workout['avg_pace_s_per_mi'])
+                content.append(f'<p><strong>Average Pace:</strong> {pace_str}</p>')
+            
+            # HR Zones
+            if workout.get('hr_zones'):
+                zone_html = '<div class="zone-distribution">'
+                for zone, time in workout['hr_zones'].items():
+                    if time != "0:00":
+                        zone_num = zone.replace('zone_', '').upper()
+                        zone_html += f'<span class="zone-item">Z{zone_num}: {time}</span>'
+                zone_html += '</div>'
+                content.append(f'<p><strong>HR Zones:</strong></p>{zone_html}')
+            content.append('</div>')
+            
+            content.append('</div>')  # End workout sections
+            
+            # Training Load Collapsible
+            if workout.get('training_effects'):
+                content.append('<button class="collapsible">Training Effects & Load</button>')
+                content.append('<div class="collapsible-content">')
+                effects = workout['training_effects']
+                if effects.get('aerobic'):
+                    content.append(f'<p><strong>Aerobic Effect:</strong> {effects["aerobic"]}</p>')
+                if effects.get('anaerobic'):
+                    content.append(f'<p><strong>Anaerobic Effect:</strong> {effects["anaerobic"]}</p>')
+                if effects.get('training_load'):
+                    content.append(f'<p><strong>Training Load:</strong> {effects["training_load"]}</p>')
+                content.append('</div>')
+            
+            # Running Form Collapsible
+            if workout.get('running_dynamics'):
+                content.append('<button class="collapsible">Running Form Analysis</button>')
+                content.append('<div class="collapsible-content">')
+                dynamics = workout['running_dynamics']
+                if dynamics.get('cadence_spm'):
+                    content.append(f'<p><strong>Cadence:</strong> {dynamics["cadence_spm"]} spm</p>')
+                if dynamics.get('stride_length_cm'):
+                    content.append(f'<p><strong>Stride Length:</strong> {dynamics["stride_length_cm"]} cm</p>')
+                if dynamics.get('ground_contact_time_ms'):
+                    content.append(f'<p><strong>Ground Contact:</strong> {dynamics["ground_contact_time_ms"]} ms</p>')
+                if dynamics.get('vertical_oscillation_mm'):
+                    content.append(f'<p><strong>Vertical Oscillation:</strong> {dynamics["vertical_oscillation_mm"]} mm</p>')
+                content.append('</div>')
+            
+            # Power Data Collapsible
+            if workout.get('power'):
+                content.append('<button class="collapsible">Power Analysis</button>')
+                content.append('<div class="collapsible-content">')
+                power = workout['power']
+                if power.get('average'):
+                    content.append(f'<p><strong>Average Power:</strong> {power["average"]}W</p>')
+                if power.get('normalized'):
+                    content.append(f'<p><strong>Normalized Power:</strong> {power["normalized"]}W</p>')
+                if power.get('maximum'):
+                    content.append(f'<p><strong>Maximum Power:</strong> {power["maximum"]}W</p>')
+                content.append('</div>')
+            
+            content.append('</div>')  # End workout detail card
+
+            # Enhanced Splits Table
+            splits = workout.get('splits', [])
+            if splits:
+                content.append('<div class="splits-section">')
+                content.append('<h2>📊 Split Analysis</h2>')
                 
-                # Basic workout info (VERTICAL)
-                if workout.get('distance_mi'):
-                    content.append(f"**Distance:** {workout['distance_mi']:.2f} mi")
-                if workout.get('moving_time_s'):
-                    time_str = self.format_time_duration(workout['moving_time_s'])
-                    content.append(f"**Time:** {time_str}")
-                if workout.get('elev_gain_ft'):
-                    content.append(f"**Elevation Gain:** {workout['elev_gain_ft']} ft")
+                # Table with enhanced styling
+                content.append("| Split | Time | Pace | HR Avg | HR Max | Elev | Cadence | Stride | GCT | VO |")
+                content.append("|-------|------|------|---------|---------|------|---------|--------|-----|-----|")
                 
-                # Location (from enhanced API data)
-                if workout.get('location'):
-                    content.append(f"**Location:** {workout['location']}")
-                
-                # Weather data (TRULY VERTICAL format - each metric on separate line)
-                if workout.get('weather'):
-                    weather = workout['weather']
+                for split in splits:
+                    split_num = split.get('split', split.get('mile', '?'))
                     
-                    # Temperature on separate line
-                    if weather.get('temperature'):
-                        temp = weather['temperature']
-                        content.append(f"**Temperature:** {temp.get('start', '?')}°F → {temp.get('end', '?')}°F")
+                    # Time
+                    time_s = split.get('mile_time_s', 0)
+                    time_str = self.format_time_duration(time_s) if time_s > 0 else "N/A"
                     
-                    # Humidity on separate line
-                    if weather.get('humidity'):
-                        humidity = weather['humidity']
-                        content.append(f"**Humidity:** {humidity.get('start', '?')}% → {humidity.get('end', '?')}%")
+                    # Pace
+                    pace_str = self.format_pace(split.get('avg_pace_s_per_mi')) if split.get('avg_pace_s_per_mi') else "N/A"
                     
-                    # Dew Point on separate line
-                    if weather.get('dew_point'):
-                        dew = weather['dew_point']
-                        content.append(f"**Dew Point:** {dew.get('start', '?')}°F → {dew.get('end', '?')}°F")
+                    # Heart rate
+                    hr_avg = split.get('avg_hr', '') or 'N/A'
+                    hr_max = split.get('max_hr', '') or 'N/A'
                     
-                    # Conditions on separate line
-                    if weather.get('conditions'):
-                        content.append(f"**Conditions:** {weather['conditions']}")
-                
-                # Heart rate
-                if workout.get('avg_hr') and workout.get('max_hr'):
-                    content.append(f"**Heart Rate:** Avg: {workout['avg_hr']} bpm, Max: {workout['max_hr']} bpm")
-                elif workout.get('avg_hr'):
-                    content.append(f"**Heart Rate:** Avg: {workout['avg_hr']} bpm")
-                
-                # Pace
-                if workout.get('avg_pace_s_per_mi'):
-                    pace_str = self.format_pace(workout['avg_pace_s_per_mi'])
-                    content.append(f"**Average Pace:** {pace_str}")
-                
-                # Training Effects (TRULY VERTICAL - each effect on separate line)
-                if workout.get('training_effects'):
-                    effects = workout['training_effects']
-                    if effects.get('aerobic'):
-                        content.append(f"**Aerobic Training Effect:** {effects['aerobic']}")
-                    if effects.get('anaerobic'):
-                        content.append(f"**Anaerobic Training Effect:** {effects['anaerobic']}")
-                    if effects.get('label'):
-                        content.append(f"**Training Effect Label:** {effects['label']}")
-                    if effects.get('training_load'):
-                        content.append(f"**Training Load:** {effects['training_load']}")
-                
-                # Running Dynamics (TRULY VERTICAL - each metric on separate line)
-                if workout.get('running_dynamics'):
-                    dynamics = workout['running_dynamics']
-                    if dynamics.get('cadence_spm'):
-                        content.append(f"**Cadence:** {dynamics['cadence_spm']} spm")
-                    if dynamics.get('stride_length_cm'):
-                        content.append(f"**Stride Length:** {dynamics['stride_length_cm']} cm")
-                    if dynamics.get('ground_contact_time_ms'):
-                        content.append(f"**Ground Contact Time:** {dynamics['ground_contact_time_ms']} ms")
-                    if dynamics.get('vertical_oscillation_mm'):
-                        content.append(f"**Vertical Oscillation:** {dynamics['vertical_oscillation_mm']} mm")
-                    if dynamics.get('vertical_ratio_percent'):
-                        content.append(f"**Vertical Ratio:** {dynamics['vertical_ratio_percent']}%")
-                
-                # Power Data (TRULY VERTICAL - each metric on separate line)
-                if workout.get('power'):
-                    power = workout['power']
-                    if power.get('average'):
-                        content.append(f"**Average Power:** {power['average']}W")
-                    if power.get('maximum'):
-                        content.append(f"**Maximum Power:** {power['maximum']}W")
-                    if power.get('normalized'):
-                        content.append(f"**Normalized Power:** {power['normalized']}W")
-                
-                # HR Zones (NEW - replaces Power Zones)
-                if workout.get('hr_zones'):
-                    zones_parts = []
-                    for zone, time in workout['hr_zones'].items():
-                        if time != "0:00":  # Only show zones with time
-                            zone_num = zone.replace('zone_', '').upper()
-                            zones_parts.append(f"Z{zone_num}: {time}")
-                    if zones_parts:
-                        content.append(f"**HR Zones:** {' • '.join(zones_parts)}")
-                elif workout.get('power_zones'):
-                    # Fallback to power zones if HR zones not available
-                    zones_parts = []
-                    for zone, time in workout['power_zones'].items():
-                        if time != "0:00":  # Only show zones with time
-                            zone_num = zone.replace('zone_', '').upper()
-                            zones_parts.append(f"Z{zone_num}: {time}")
-                    if zones_parts:
-                        content.append(f"**Power Zones:** {' • '.join(zones_parts)}")
-                
-                # Splits TABLE FORMAT (NEW with styling)
-                splits = workout.get('splits', [])
-                if splits:
-                    content.append("")
-                    content.append("## Splits")
-                    content.append("")
+                    # Elevation
+                    elev = split.get('elev_gain_ft', 0)
+                    elev_str = f"{elev:+d} ft" if elev != 0 else "0 ft"
                     
-                    # Add CSS styling for better table appearance
-                    content.append('<style>')
-                    content.append('table { border-collapse: collapse; width: 100%; margin: 16px 0; }')
-                    content.append('th { background-color: #2d3748; color: white; padding: 12px 8px; text-align: center; font-weight: bold; }')
-                    content.append('td { padding: 8px; text-align: center; border: 1px solid #e2e8f0; }')
-                    content.append('tr:nth-child(even) { background-color: #f7fafc; }')
-                    content.append('tr:nth-child(odd) { background-color: #ffffff; }')
-                    content.append('tr:hover { background-color: #edf2f7; }')
-                    content.append('</style>')
-                    content.append("")
+                    # Enhanced running dynamics (per-split)
+                    cadence = stride = gct = vo = "N/A"
+                    if split.get('running_dynamics'):
+                        rd = split['running_dynamics']
+                        if rd.get('cadence_spm'):
+                            cadence = f"{rd['cadence_spm']} spm"
+                        if rd.get('stride_length_cm'):
+                            stride = f"{rd['stride_length_cm']} cm"
+                        if rd.get('ground_contact_time_ms'):
+                            gct = f"{rd['ground_contact_time_ms']} ms"
+                        if rd.get('vertical_oscillation_mm'):
+                            vo = f"{rd['vertical_oscillation_mm']} mm"
                     
-                    # Table header
-                    content.append("| Split | Time | Pace | HR Avg | HR Max | Elev | Cadence | Stride | GCT | VO |")
-                    content.append("|-------|------|------|---------|---------|------|---------|--------|-----|-----|")
-                    
-                    # Table rows
-                    for split in splits:
-                        split_num = split.get('split', split.get('mile', '?'))  # Handle both old "mile" and new "split"
-                        
-                        # Time
-                        time_s = split.get('mile_time_s', 0)
-                        time_str = self.format_time_duration(time_s) if time_s > 0 else "N/A"
-                        
-                        # Pace
-                        pace_str = self.format_pace(split.get('avg_pace_s_per_mi')) if split.get('avg_pace_s_per_mi') else "N/A"
-                        
-                        # Heart rate
-                        hr_avg = split.get('avg_hr', '') or 'N/A'
-                        hr_max = split.get('max_hr', '') or 'N/A'
-                        
-                        # Elevation
-                        elev = split.get('elev_gain_ft', 0)
-                        elev_str = f"{elev:+d} ft" if elev != 0 else "0 ft"
-                        
-                        # Running dynamics
-                        cadence = stride = gct = vo = "N/A"
-                        if split.get('running_dynamics'):
-                            rd = split['running_dynamics']
-                            cadence = f"{rd.get('cadence_spm', 'N/A')} spm" if rd.get('cadence_spm') else "N/A"
-                            stride = f"{rd.get('stride_length_cm', 'N/A')} cm" if rd.get('stride_length_cm') else "N/A"
-                            gct = f"{rd.get('ground_contact_time_ms', 'N/A')} ms" if rd.get('ground_contact_time_ms') else "N/A"
-                            vo = f"{rd.get('vertical_oscillation_mm', 'N/A')} mm" if rd.get('vertical_oscillation_mm') else "N/A"
-                        
-                        content.append(f"| {split_num} | {time_str} | {pace_str} | {hr_avg} | {hr_max} | {elev_str} | {cadence} | {stride} | {gct} | {vo} |")
+                    content.append(f"| {split_num} | {time_str} | {pace_str} | {hr_avg} | {hr_max} | {elev_str} | {cadence} | {stride} | {gct} | {vo} |")
                 
-                content.append("")  # Empty line between workouts
+                content.append('</div>')  # End splits section
+
+        # JavaScript for collapsible functionality
+        content.append("""
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight){
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+            } 
+        });
+    }
+});
+</script>""")
         
         return '\n'.join(content)
 
