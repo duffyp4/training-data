@@ -236,9 +236,9 @@ h1 {
 
 /* ENHANCED TABLE STYLING TO MATCH CARD DESIGN */
 .splits-section {
-    margin: 32px 0;
-    grid-column: 1 / -1;
+    margin: 32px auto;
     width: 100%;
+    max-width: 1200px;
 }
 
 .splits-section h2 {
@@ -258,10 +258,9 @@ h1 {
     padding: 24px;
     box-shadow: 0 6px 25px rgba(0,0,0,0.12);
     border-left: 5px solid #10b981;
-    margin: 20px auto;
+    margin: 0 auto;
     overflow: hidden;
     width: 100%;
-    max-width: 100%;
 }
 
 /* IMPROVED HTML TABLE STYLES */
