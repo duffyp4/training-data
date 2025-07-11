@@ -298,9 +298,9 @@ class GarminToDailyFiles:
                 "step_type": lap.get('stepType')  # From FIT data if available
             }
             
-            # Add per-split running dynamics if available (from FIT file)
-            if lap.get('runningDynamics'):
-                split["running_dynamics"] = lap['runningDynamics']
+            # Add per-split running dynamics if available (from API data)
+            if lap.get('running_dynamics'):
+                split["running_dynamics"] = lap['running_dynamics']
             
             splits.append(split)
         
@@ -1195,8 +1195,6 @@ h1 {
             content.append(self.get_smart_metric_layout(workout_metrics))
             content.append('</div>')  # End workout card
         
-        content.append('</div>')  # End card container
-
         # Detailed Workout Card (Full Width)
         if workouts:
             content.append('<div class="workout-detail-card">')
@@ -1296,7 +1294,7 @@ h1 {
             
             content.append('</div>')  # End workout detail card
 
-            # IMPROVED HTML TABLE for Splits with Card Styling
+            # IMPROVED HTML TABLE for Splits with Card Styling (inside card container)
             splits = workout.get('splits', [])
             if splits:
                 content.append('<div class="splits-section">')
@@ -1306,6 +1304,8 @@ h1 {
                 content.append(self.generate_mobile_cards_html(splits))
                 content.append('</div>')
                 content.append('</div>')  # End splits section
+        
+        content.append('</div>')  # End card container
 
         # JavaScript for collapsible functionality
         content.append("""
