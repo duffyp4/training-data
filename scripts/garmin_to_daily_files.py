@@ -340,11 +340,9 @@ class GarminToDailyFiles:
         return full_content
 
     def generate_summary_section(self, daily_data: Dict) -> str:
-        """Generate the daily summary section (REMOVED redundant totals)"""
-        date = daily_data.get('date', '')
-        
-        # NO MORE TOTALS/SLEEP SUMMARY - just the title
-        return f"# {date} · Daily Summary"
+        """Generate the daily summary section (REMOVED redundant totals and header)"""
+        # Return empty string - header is redundant with navigation bar
+        return ""
 
     def get_smart_metric_layout(self, metrics: List[Dict]) -> str:
         """Generate smart metric layout that avoids awkward two-line displays"""
