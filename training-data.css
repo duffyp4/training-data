@@ -331,7 +331,7 @@ h1 {
 @media (max-width: 768px) {
     /* Hide the table and show mobile cards instead */
     .splits-table {
-        display: none;
+        display: none !important;
     }
     
     /* Mobile card-based layout */
@@ -394,6 +394,32 @@ h1 {
     .table-container {
         padding: 16px;
         margin: 16px 0;
+        min-width: unset;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* CONSOLIDATED MOBILE STYLES - moved from duplicate media query */
+    .card-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .workout-sections {
+        grid-template-columns: 1fr;
+    }
+    
+    .metric-grid {
+        grid-template-columns: 1fr; /* Single column on mobile */
+    }
+    
+    .navigation-bar {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+    
+    h1 {
+        font-size: 2em;
     }
 }
 
@@ -513,35 +539,4 @@ h1 {
     border-color: #dc2626;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .card-container {
-        grid-template-columns: 1fr;
-    }
-    
-    .workout-sections {
-        grid-template-columns: 1fr;
-    }
-    
-    .metric-grid {
-        grid-template-columns: 1fr; /* Single column on mobile */
-    }
-    
-    .navigation-bar {
-        flex-direction: column;
-        gap: 12px;
-        text-align: center;
-    }
-    
-    h1 {
-        font-size: 2em;
-    }
-    
-    .splits-table {
-        font-size: 0.8em;
-    }
-    
-    .splits-table th, .splits-table td {
-        padding: 8px 6px;
-    }
-} 
+/* REMOVED - Consolidated into main mobile media query above to prevent conflicts */ 
