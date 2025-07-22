@@ -4,6 +4,7 @@ This repository contains comprehensive training data with detailed per-split met
 
 ## Recent Activities
 
+- **[Monday, July 21, 2025](data/2025/07/21.md)** - 1 workout, 3.3 miles
 - **[Saturday, July 19, 2025](data/2025/07/19.md)** - 1 workout, 10.0 miles
 - **[Friday, July 18, 2025](data/2025/07/18.md)** - 1 workout, 6.0 miles
 - **[Thursday, July 17, 2025](data/2025/07/17.md)** - 1 workout, 4.0 miles
@@ -18,14 +19,14 @@ This repository contains comprehensive training data with detailed per-split met
 - **[Monday, July 07, 2025](data/2025/07/07.md)** - 1 workout, 8.0 miles
 - **[Sunday, July 06, 2025](data/2025/07/06.md)** - 1 workout, 2.0 miles
 - **[Friday, July 04, 2025](data/2025/07/04.md)** - 1 workout, 3.9 miles
-- **[Wednesday, July 02, 2025](data/2025/07/02.md)** - 1 workout, 2.8 miles
 
 ## Complete Data Index
 
-**All 54 daily files:** 
+**All 55 daily files:** 
 
 ### July 2025
 
+- **[Monday, July 21, 2025](data/2025/07/21.md)** - 1 workout, 3.3 miles
 - **[Saturday, July 19, 2025](data/2025/07/19.md)** - 1 workout, 10.0 miles
 - **[Friday, July 18, 2025](data/2025/07/18.md)** - 1 workout, 6.0 miles
 - **[Thursday, July 17, 2025](data/2025/07/17.md)** - 1 workout, 4.0 miles
@@ -95,9 +96,9 @@ This repository contains comprehensive training data with detailed per-split met
 
 ## Summary
 
-- **Total Files:** 54 daily training files
-- **Date Range:** Saturday, March 08, 2025 to Saturday, July 19, 2025
-- **Total Workouts:** 56
-- **Total Distance:** 191.1 miles
+- **Total Files:** 55 daily training files
+- **Date Range:** Saturday, March 08, 2025 to Monday, July 21, 2025
+- **Total Workouts:** 57
+- **Total Distance:** 194.3 miles
 
 Each daily file contains YAML front matter, human-readable summaries, detailed workout splits, and complete JSON data.
