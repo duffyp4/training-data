@@ -150,7 +150,24 @@ def generate_index():
     with open('index.md', 'w', encoding='utf-8') as f:
         f.write(index_content)
     
-    logger.info("Generated index.md successfully")
+    # Write data/index.json for AI agent consumption
+    # Added 2025-07-22: AI agents were unable to discover recent training data 
+    # because index.json was stale (only went to July 7th vs July 21st actual data)
+    json_data = []
+    for file_data in daily_files:
+        json_data.append({
+            "date": file_data['date'],
+            "path": file_data['file_path'].replace('\\', '/')
+        })
+    
+    data_dir = Path('data')
+    data_dir.mkdir(exist_ok=True)
+    
+    with open(data_dir / 'index.json', 'w', encoding='utf-8') as f:
+        import json
+        json.dump(json_data, f, indent=2)
+    
+    logger.info("Generated index.md and data/index.json successfully")
     return len(daily_files)
 
 def main():
