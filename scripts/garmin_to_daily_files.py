@@ -500,35 +500,62 @@ class GarminToDailyFiles:
         return html
 
     def get_navigation_buttons(self, current_date: str) -> str:
-        """Generate navigation buttons with PROPER paths (fixes 404 issue)"""
+        """Generate navigation buttons that find actual available dates (not consecutive days)"""
         try:
-            from datetime import datetime, timedelta
-            dt = datetime.strptime(current_date, '%Y-%m-%d')
-            prev_date = dt - timedelta(days=1)
-            next_date = dt + timedelta(days=1)
-            
-            # Use proper relative paths WITHOUT .md extension
-            prev_path = f"../07/{prev_date.day:02d}" if prev_date.month == 7 else f"../{prev_date.month:02d}/{prev_date.day:02d}"
-            next_path = f"{next_date.day:02d}" if next_date.month == dt.month else f"../{next_date.month:02d}/{next_date.day:02d}"
-            
-            # Check if files exist
+            from datetime import datetime
             from pathlib import Path
-            prev_file_path = Path(f"data/{prev_date.year}/{prev_date.month:02d}/{prev_date.day:02d}.md")
-            next_file_path = Path(f"data/{next_date.year}/{next_date.month:02d}/{next_date.day:02d}.md")
             
-            prev_exists = prev_file_path.exists()
-            next_exists = next_file_path.exists()
+            current_dt = datetime.strptime(current_date, '%Y-%m-%d')
             
+            # Find all available dates by scanning data directory
+            data_dir = Path("data")
+            available_dates = []
+            
+            if data_dir.exists():
+                for year_dir in sorted(data_dir.glob("20*")):
+                    if year_dir.is_dir():
+                        for month_dir in sorted(year_dir.glob("*")):
+                            if month_dir.is_dir():
+                                try:
+                                    month_num = int(month_dir.name)
+                                    for day_file in sorted(month_dir.glob("*.md")):
+                                        try:
+                                            day_num = int(day_file.stem)
+                                            date_str = f"{year_dir.name}-{month_num:02d}-{day_num:02d}"
+                                            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+                                            available_dates.append(date_obj)
+                                        except (ValueError, TypeError):
+                                            continue
+                                except (ValueError, TypeError):
+                                    continue
+            
+            # Sort dates and find current position
+            available_dates.sort()
+            current_index = None
+            
+            for i, date_obj in enumerate(available_dates):
+                if date_obj == current_dt:
+                    current_index = i
+                    break
+            
+            # Generate navigation HTML
             nav_html = '<div class="navigation-bar">'
             
-            if prev_exists:
+            # Previous button
+            if current_index is not None and current_index > 0:
+                prev_date = available_dates[current_index - 1]
+                prev_path = self.get_relative_path(current_dt, prev_date)
                 nav_html += f'<a href="{prev_path}" class="nav-button nav-prev">← {prev_date.strftime("%b %d")}</a>'
             else:
                 nav_html += '<span class="nav-disabled">← Previous</span>'
             
-            nav_html += f'<span class="nav-current">{dt.strftime("%B %d, %Y")}</span>'
+            # Current date
+            nav_html += f'<span class="nav-current">{current_dt.strftime("%B %d, %Y")}</span>'
             
-            if next_exists:
+            # Next button
+            if current_index is not None and current_index < len(available_dates) - 1:
+                next_date = available_dates[current_index + 1]
+                next_path = self.get_relative_path(current_dt, next_date)
                 nav_html += f'<a href="{next_path}" class="nav-button nav-next">{next_date.strftime("%b %d")} →</a>'
             else:
                 nav_html += '<span class="nav-disabled">Next →</span>'
@@ -539,6 +566,20 @@ class GarminToDailyFiles:
         except Exception as e:
             logger.warning(f"Could not generate navigation for date {current_date}: {e}")
             return ""
+
+    def get_relative_path(self, from_date: datetime, to_date: datetime) -> str:
+        """Generate correct relative path between two dates"""
+        try:
+            from datetime import datetime
+            
+            # Both dates in same month
+            if from_date.year == to_date.year and from_date.month == to_date.month:
+                return f"{to_date.day:02d}"
+            else:
+                # Different month/year - go up to year level then down
+                return f"../{to_date.month:02d}/{to_date.day:02d}"
+        except Exception:
+            return "#"
 
 
 
