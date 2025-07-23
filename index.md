@@ -1,109 +1,494 @@
-# Training Data
+<link rel="stylesheet" href="training-data.css">
 
-This repository contains comprehensive training data with detailed per-split metrics, workout data, and wellness information in structured daily files.
+# 🏃‍♂️ Training Data Dashboard
 
-## Recent Activities
+Comprehensive training data with detailed per-split metrics, workout data, and wellness information.
 
-- **[Tuesday, July 22, 2025](data/2025/07/22.md)** - 1 workout, 3.5 miles
-- **[Monday, July 21, 2025](data/2025/07/21.md)** - 1 workout, 3.3 miles
-- **[Sunday, July 20, 2025](data/2025/07/20.md)** - 0 workouts, 0 miles
-- **[Saturday, July 19, 2025](data/2025/07/19.md)** - 1 workout, 10.0 miles
-- **[Friday, July 18, 2025](data/2025/07/18.md)** - 1 workout, 6.0 miles
-- **[Thursday, July 17, 2025](data/2025/07/17.md)** - 1 workout, 4.0 miles
-- **[Wednesday, July 16, 2025](data/2025/07/16.md)** - 1 workout, 4.5 miles
-- **[Tuesday, July 15, 2025](data/2025/07/15.md)** - 1 workout, 2.5 miles
-- **[Monday, July 14, 2025](data/2025/07/14.md)** - 0 workouts, 0 miles
-- **[Sunday, July 13, 2025](data/2025/07/13.md)** - 1 workout, 6.2 miles
-- **[Saturday, July 12, 2025](data/2025/07/12.md)** - 1 workout, 0.4 miles
-- **[Friday, July 11, 2025](data/2025/07/11.md)** - 1 workout, 4.0 miles
-- **[Thursday, July 10, 2025](data/2025/07/10.md)** - 1 workout, 3.7 miles
-- **[Wednesday, July 09, 2025](data/2025/07/09.md)** - 1 workout, 3.9 miles
-- **[Tuesday, July 08, 2025](data/2025/07/08.md)** - 1 workout, 2.0 miles
 
-## Complete Data Index
+<div class="stats-dashboard">
+    <h2>📊 July 2025 Quick Stats</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">19</div>
+            <div class="stat-label">Total Workouts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">74.0</div>
+            <div class="stat-label">Miles</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">14.2</div>
+            <div class="stat-label">Hours</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">79</div>
+            <div class="stat-label">Avg Sleep Score</div>
+        </div>
+    </div>
+</div>
 
-**All 60 daily files:** 
 
-### July 2025
 
-- **[Tuesday, July 22, 2025](data/2025/07/22.md)** - 1 workout, 3.5 miles
-- **[Monday, July 21, 2025](data/2025/07/21.md)** - 1 workout, 3.3 miles
-- **[Sunday, July 20, 2025](data/2025/07/20.md)** - 0 workouts, 0 miles
-- **[Saturday, July 19, 2025](data/2025/07/19.md)** - 1 workout, 10.0 miles
-- **[Friday, July 18, 2025](data/2025/07/18.md)** - 1 workout, 6.0 miles
-- **[Thursday, July 17, 2025](data/2025/07/17.md)** - 1 workout, 4.0 miles
-- **[Wednesday, July 16, 2025](data/2025/07/16.md)** - 1 workout, 4.5 miles
-- **[Tuesday, July 15, 2025](data/2025/07/15.md)** - 1 workout, 2.5 miles
-- **[Monday, July 14, 2025](data/2025/07/14.md)** - 0 workouts, 0 miles
-- **[Sunday, July 13, 2025](data/2025/07/13.md)** - 1 workout, 6.2 miles
-- **[Saturday, July 12, 2025](data/2025/07/12.md)** - 1 workout, 0.4 miles
-- **[Friday, July 11, 2025](data/2025/07/11.md)** - 1 workout, 4.0 miles
-- **[Thursday, July 10, 2025](data/2025/07/10.md)** - 1 workout, 3.7 miles
-- **[Wednesday, July 09, 2025](data/2025/07/09.md)** - 1 workout, 3.9 miles
-- **[Tuesday, July 08, 2025](data/2025/07/08.md)** - 1 workout, 2.0 miles
-- **[Monday, July 07, 2025](data/2025/07/07.md)** - 1 workout, 8.0 miles
-- **[Sunday, July 06, 2025](data/2025/07/06.md)** - 1 workout, 2.0 miles
-- **[Saturday, July 05, 2025](data/2025/07/05.md)** - 0 workouts, 0 miles
-- **[Friday, July 04, 2025](data/2025/07/04.md)** - 1 workout, 3.9 miles
-- **[Thursday, July 03, 2025](data/2025/07/03.md)** - 0 workouts, 0 miles
-- **[Wednesday, July 02, 2025](data/2025/07/02.md)** - 1 workout, 2.8 miles
-- **[Tuesday, July 01, 2025](data/2025/07/01.md)** - 2 workouts, 3.3 miles
+<div class="calendar-widget">
+    <h2>📅 Calendar Navigator</h2>
+    <div class="calendar-header">
+        <button class="calendar-nav" onclick="changeMonth(-1)">‹</button>
+        <h3 id="calendar-month">July 2025</h3>
+        <button class="calendar-nav" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="calendar-grid">
+        <div class="calendar-day-header">Sun</div>
+        <div class="calendar-day-header">Mon</div>
+        <div class="calendar-day-header">Tue</div>
+        <div class="calendar-day-header">Wed</div>
+        <div class="calendar-day-header">Thu</div>
+        <div class="calendar-day-header">Fri</div>
+        <div class="calendar-day-header">Sat</div>
 
-### June 2025
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/01.md'">
+            <span class="day-number">1</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/02.md'">
+            <span class="day-number">2</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/03.md'">
+            <span class="day-number">3</span>
+            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/04.md'">
+            <span class="day-number">4</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/05.md'">
+            <span class="day-number">5</span>
+            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/06.md'">
+            <span class="day-number">6</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/07.md'">
+            <span class="day-number">7</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/08.md'">
+            <span class="day-number">8</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/09.md'">
+            <span class="day-number">9</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/10.md'">
+            <span class="day-number">10</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/11.md'">
+            <span class="day-number">11</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/12.md'">
+            <span class="day-number">12</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/13.md'">
+            <span class="day-number">13</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/14.md'">
+            <span class="day-number">14</span>
+            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/15.md'">
+            <span class="day-number">15</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/16.md'">
+            <span class="day-number">16</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/17.md'">
+            <span class="day-number">17</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/18.md'">
+            <span class="day-number">18</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/19.md'">
+            <span class="day-number">19</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/20.md'">
+            <span class="day-number">20</span>
+            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/21.md'">
+            <span class="day-number">21</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/22.md'">
+            <span class="day-number">22</span>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/23.md'">
+            <span class="day-number">23</span>
+            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
+        </div>
+        <div class="calendar-day">
+            <span class="day-number">24</span>
+        </div>
+        <div class="calendar-day">
+            <span class="day-number">25</span>
+        </div>
+        <div class="calendar-day">
+            <span class="day-number">26</span>
+        </div>
+        <div class="calendar-day">
+            <span class="day-number">27</span>
+        </div>
+        <div class="calendar-day">
+            <span class="day-number">28</span>
+        </div>
+        <div class="calendar-day">
+            <span class="day-number">29</span>
+        </div>
+        <div class="calendar-day">
+            <span class="day-number">30</span>
+        </div>
+        <div class="calendar-day">
+            <span class="day-number">31</span>
+        </div>
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
+    </div>
+    <div class="calendar-legend">
+        <span><span class="dot">🟢</span> Workout Data</span>
+        <span><span class="dot">🔵</span> Wellness Data</span>
+    </div>
+</div>
 
-- **[Sunday, June 29, 2025](data/2025/06/29.md)** - 1 workout, 3.5 miles
-- **[Saturday, June 28, 2025](data/2025/06/28.md)** - 1 workout, 7.0 miles
-- **[Thursday, June 26, 2025](data/2025/06/26.md)** - 1 workout, 2.0 miles
-- **[Wednesday, June 25, 2025](data/2025/06/25.md)** - 1 workout, 3.0 miles
-- **[Tuesday, June 24, 2025](data/2025/06/24.md)** - 2 workouts, 3.7 miles
-- **[Monday, June 23, 2025](data/2025/06/23.md)** - 1 workout, 2.0 miles
-- **[Saturday, June 21, 2025](data/2025/06/21.md)** - 1 workout, 2.8 miles
-- **[Friday, June 20, 2025](data/2025/06/20.md)** - 1 workout, 6.1 miles
-- **[Sunday, June 15, 2025](data/2025/06/15.md)** - 1 workout, 2.2 miles
-- **[Saturday, June 14, 2025](data/2025/06/14.md)** - 1 workout, 5.0 miles
-- **[Friday, June 13, 2025](data/2025/06/13.md)** - 1 workout, 2.3 miles
-- **[Wednesday, June 11, 2025](data/2025/06/11.md)** - 1 workout, 2.4 miles
-- **[Tuesday, June 10, 2025](data/2025/06/10.md)** - 1 workout, 2.9 miles
-- **[Monday, June 09, 2025](data/2025/06/09.md)** - 1 workout, 1.8 miles
-- **[Saturday, June 07, 2025](data/2025/06/07.md)** - 1 workout, 4.0 miles
-- **[Tuesday, June 03, 2025](data/2025/06/03.md)** - 1 workout, 3.0 miles
-- **[Monday, June 02, 2025](data/2025/06/02.md)** - 1 workout, 5.0 miles
 
-### May 2025
+<div class="training-plan">
+    <h2>🏃‍♂️ Nike Marathon Training Progress</h2>
+    <div class="training-cards">
 
-- **[Thursday, May 29, 2025](data/2025/05/29.md)** - 1 workout, 3.0 miles
-- **[Tuesday, May 27, 2025](data/2025/05/27.md)** - 1 workout, 2.5 miles
-- **[Monday, May 19, 2025](data/2025/05/19.md)** - 1 workout, 2.8 miles
-- **[Wednesday, May 07, 2025](data/2025/05/07.md)** - 1 workout, 4.6 miles
-- **[Tuesday, May 06, 2025](data/2025/05/06.md)** - 1 workout, 3.4 miles
-- **[Sunday, May 04, 2025](data/2025/05/04.md)** - 1 workout, 3.6 miles
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 1 (18 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">6.3 miles</span>
+                    <span class="target-miles">Target: 25 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 25.2%"></div>
+                </div>
+            </div>
+        </div>
 
-### April 2025
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 2 (17 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">2.8 miles</span>
+                    <span class="target-miles">Target: 27 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 10.4%"></div>
+                </div>
+            </div>
+        </div>
 
-- **[Wednesday, April 30, 2025](data/2025/04/30.md)** - 1 workout, 3.0 miles
-- **[Thursday, April 24, 2025](data/2025/04/24.md)** - 1 workout, 2.1 miles
-- **[Monday, April 14, 2025](data/2025/04/14.md)** - 1 workout, 2.8 miles
-- **[Saturday, April 12, 2025](data/2025/04/12.md)** - 1 workout, 4.2 miles
-- **[Tuesday, April 08, 2025](data/2025/04/08.md)** - 1 workout, 2.1 miles
-- **[Sunday, April 06, 2025](data/2025/04/06.md)** - 1 workout, 4.2 miles
-- **[Wednesday, April 02, 2025](data/2025/04/02.md)** - 1 workout, 4.0 miles
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 3 (16 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">2.1 miles</span>
+                    <span class="target-miles">Target: 29 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 7.1%"></div>
+                </div>
+            </div>
+        </div>
 
-### March 2025
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 4 (15 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">6.6 miles</span>
+                    <span class="target-miles">Target: 23 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 28.7%"></div>
+                </div>
+            </div>
+        </div>
 
-- **[Saturday, March 29, 2025](data/2025/03/29.md)** - 1 workout, 3.0 miles
-- **[Friday, March 28, 2025](data/2025/03/28.md)** - 1 workout, 3.8 miles
-- **[Monday, March 24, 2025](data/2025/03/24.md)** - 1 workout, 3.2 miles
-- **[Friday, March 21, 2025](data/2025/03/21.md)** - 1 workout, 3.2 miles
-- **[Thursday, March 20, 2025](data/2025/03/20.md)** - 1 workout, 1.6 miles
-- **[Tuesday, March 18, 2025](data/2025/03/18.md)** - 1 workout, 3.1 miles
-- **[Wednesday, March 12, 2025](data/2025/03/12.md)** - 1 workout, 2.6 miles
-- **[Saturday, March 08, 2025](data/2025/03/08.md)** - 1 workout, 2.2 miles
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 5 (14 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">8.0 miles</span>
+                    <span class="target-miles">Target: 31 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 25.9%"></div>
+                </div>
+            </div>
+        </div>
 
-## Summary
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 6 (13 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">0.0 miles</span>
+                    <span class="target-miles">Target: 33 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </div>
+        </div>
 
-- **Total Files:** 60 daily training files
-- **Date Range:** Saturday, March 08, 2025 to Tuesday, July 22, 2025
-- **Total Workouts:** 58
-- **Total Distance:** 197.8 miles
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 7 (12 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">2.8 miles</span>
+                    <span class="target-miles">Target: 35 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 8.1%"></div>
+                </div>
+            </div>
+        </div>
 
-Each daily file contains YAML front matter, human-readable summaries, detailed workout splits, and complete JSON data.
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 8 (11 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">5.6 miles</span>
+                    <span class="target-miles">Target: 27 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 20.6%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 9 (10 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">12.1 miles</span>
+                    <span class="target-miles">Target: 37 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 32.6%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 10 (9 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">16.5 miles</span>
+                    <span class="target-miles">Target: 39 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 42.3%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 11 (8 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">8.9 miles</span>
+                    <span class="target-miles">Target: 41 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 21.7%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 12 (7 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">21.3 miles</span>
+                    <span class="target-miles">Target: 31 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 68.6%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 13 (6 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">12.1 miles</span>
+                    <span class="target-miles">Target: 43 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 28.1%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 14 (5 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">28.2 miles</span>
+                    <span class="target-miles">Target: 45 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 62.7%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 15 (4 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">27.0 miles</span>
+                    <span class="target-miles">Target: 47 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 57.4%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card missed-target">
+            <div class="training-card-header">
+                <h4>Week 16 (3 weeks to go)</h4>
+                <span class="status-icon">❌</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">6.8 miles</span>
+                    <span class="target-miles">Target: 35 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 19.3%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card future-week">
+            <div class="training-card-header">
+                <h4>Week 17 (2 weeks to go)</h4>
+                <span class="status-icon">⏳</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">0.0 miles</span>
+                    <span class="target-miles">Target: 25 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card future-week">
+            <div class="training-card-header">
+                <h4>Week 18 (1 week to go)</h4>
+                <span class="status-icon">⏳</span>
+            </div>
+            <div class="training-card-content">
+                <div class="mileage-comparison">
+                    <span class="actual-miles">0.0 miles</span>
+                    <span class="target-miles">Target: 15 miles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+
+function changeMonth(delta) {
+    currentMonth += delta;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    } else if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"];
+    
+    document.getElementById('calendar-month').textContent = 
+        monthNames[currentMonth] + ' ' + currentYear;
+    
+    // Note: Full calendar regeneration would require server-side update
+    // For now, this updates the header. Full implementation would require AJAX.
+}
+</script>
