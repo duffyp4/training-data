@@ -189,9 +189,13 @@ def generate_nike_training_cards(daily_files: List[Dict]) -> str:
     <div class="training-cards">''']
         
         for week_data in plan['weeks']:
-            week_num = int(week_data['week'].split()[1]) # Extract week number
+            week_num = int(week_data['week'].split()[1])  # Extract week number
             week_start = start_date + timedelta(weeks=week_num-1)
             week_end = week_start + timedelta(days=6)
+            
+            # Only show weeks that have started (up to current week)
+            if week_start > datetime.now():
+                break  # Stop showing future weeks that haven't started yet
             
             # Calculate actual miles for this week
             week_files = [f for f in daily_files 
@@ -200,18 +204,19 @@ def generate_nike_training_cards(daily_files: List[Dict]) -> str:
             actual_miles = sum(f['total_distance'] for f in week_files)
             target_miles = week_data['target_miles']
             
-            # Determine status
-            if actual_miles >= target_miles:
-                status_class = 'hit-target'
-                status_icon = '✅'
+            # Determine status - no more future weeks shown
+            if week_end < datetime.now():
+                # Completed week
+                if actual_miles >= target_miles:
+                    status_class = 'hit-target'
+                    status_icon = '✅'
+                else:
+                    status_class = 'missed-target'
+                    status_icon = '❌'
             else:
-                status_class = 'missed-target'
-                status_icon = '❌'
-            
-            # Check if week is in the future
-            if week_start > datetime.now():
-                status_class = 'future-week'
-                status_icon = '⏳'
+                # Current week in progress
+                status_class = 'current-week'
+                status_icon = '🔄'
             
             html.append(f'''
         <div class="training-card {status_class}">

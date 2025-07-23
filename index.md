@@ -184,11 +184,11 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
             <div class="training-card-content">
                 <div class="mileage-comparison">
-                    <span class="actual-miles">6.3 miles</span>
+                    <span class="actual-miles">5.6 miles</span>
                     <span class="target-miles">Target: 25 miles</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 25.2%"></div>
+                    <div class="progress-fill" style="width: 22.2%"></div>
                 </div>
             </div>
         </div>
@@ -200,11 +200,11 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
             <div class="training-card-content">
                 <div class="mileage-comparison">
-                    <span class="actual-miles">2.8 miles</span>
+                    <span class="actual-miles">12.1 miles</span>
                     <span class="target-miles">Target: 27 miles</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 10.4%"></div>
+                    <div class="progress-fill" style="width: 44.7%"></div>
                 </div>
             </div>
         </div>
@@ -216,11 +216,11 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
             <div class="training-card-content">
                 <div class="mileage-comparison">
-                    <span class="actual-miles">2.1 miles</span>
+                    <span class="actual-miles">14.3 miles</span>
                     <span class="target-miles">Target: 29 miles</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 7.1%"></div>
+                    <div class="progress-fill" style="width: 49.4%"></div>
                 </div>
             </div>
         </div>
@@ -232,11 +232,11 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
             <div class="training-card-content">
                 <div class="mileage-comparison">
-                    <span class="actual-miles">6.6 miles</span>
+                    <span class="actual-miles">11.0 miles</span>
                     <span class="target-miles">Target: 23 miles</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 28.7%"></div>
+                    <div class="progress-fill" style="width: 48.0%"></div>
                 </div>
             </div>
         </div>
@@ -248,11 +248,11 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
             <div class="training-card-content">
                 <div class="mileage-comparison">
-                    <span class="actual-miles">8.0 miles</span>
+                    <span class="actual-miles">17.8 miles</span>
                     <span class="target-miles">Target: 31 miles</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 25.9%"></div>
+                    <div class="progress-fill" style="width: 57.3%"></div>
                 </div>
             </div>
         </div>
@@ -264,11 +264,11 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
             <div class="training-card-content">
                 <div class="mileage-comparison">
-                    <span class="actual-miles">0.0 miles</span>
+                    <span class="actual-miles">13.6 miles</span>
                     <span class="target-miles">Target: 33 miles</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 0.0%"></div>
+                    <div class="progress-fill" style="width: 41.1%"></div>
                 </div>
             </div>
         </div>
@@ -280,187 +280,43 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
             <div class="training-card-content">
                 <div class="mileage-comparison">
-                    <span class="actual-miles">2.8 miles</span>
+                    <span class="actual-miles">24.1 miles</span>
                     <span class="target-miles">Target: 35 miles</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 8.1%"></div>
+                    <div class="progress-fill" style="width: 68.7%"></div>
                 </div>
             </div>
         </div>
 
-        <div class="training-card missed-target">
+        <div class="training-card hit-target">
             <div class="training-card-header">
                 <h4>Week 8 (11 weeks to go)</h4>
-                <span class="status-icon">❌</span>
+                <span class="status-icon">✅</span>
             </div>
             <div class="training-card-content">
                 <div class="mileage-comparison">
-                    <span class="actual-miles">5.6 miles</span>
+                    <span class="actual-miles">33.2 miles</span>
                     <span class="target-miles">Target: 27 miles</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 20.6%"></div>
+                    <div class="progress-fill" style="width: 100.0%"></div>
                 </div>
             </div>
         </div>
 
-        <div class="training-card missed-target">
+        <div class="training-card current-week">
             <div class="training-card-header">
                 <h4>Week 9 (10 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">12.1 miles</span>
-                    <span class="target-miles">Target: 37 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 32.6%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 10 (9 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">16.5 miles</span>
-                    <span class="target-miles">Target: 39 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 42.3%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 11 (8 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">8.9 miles</span>
-                    <span class="target-miles">Target: 41 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 21.7%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 12 (7 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">21.3 miles</span>
-                    <span class="target-miles">Target: 31 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 68.6%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 13 (6 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">12.1 miles</span>
-                    <span class="target-miles">Target: 43 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 28.1%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 14 (5 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">28.2 miles</span>
-                    <span class="target-miles">Target: 45 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 62.7%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 15 (4 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">27.0 miles</span>
-                    <span class="target-miles">Target: 47 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 57.4%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 16 (3 weeks to go)</h4>
-                <span class="status-icon">❌</span>
+                <span class="status-icon">🔄</span>
             </div>
             <div class="training-card-content">
                 <div class="mileage-comparison">
                     <span class="actual-miles">6.8 miles</span>
-                    <span class="target-miles">Target: 35 miles</span>
+                    <span class="target-miles">Target: 37 miles</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 19.3%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card future-week">
-            <div class="training-card-header">
-                <h4>Week 17 (2 weeks to go)</h4>
-                <span class="status-icon">⏳</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">0.0 miles</span>
-                    <span class="target-miles">Target: 25 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 0.0%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card future-week">
-            <div class="training-card-header">
-                <h4>Week 18 (1 week to go)</h4>
-                <span class="status-icon">⏳</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">0.0 miles</span>
-                    <span class="target-miles">Target: 15 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 0.0%"></div>
+                    <div class="progress-fill" style="width: 18.2%"></div>
                 </div>
             </div>
         </div>

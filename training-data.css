@@ -743,6 +743,11 @@ h1 {
     background: linear-gradient(145deg, #fef2f2, #fecaca);
 }
 
+.training-card.current-week {
+    border-left-color: #f59e0b;
+    background: linear-gradient(145deg, #fffbeb, #fef3c7);
+}
+
 .training-card.future-week {
     border-left-color: #6b7280;
     background: linear-gradient(145deg, #f9fafb, #f3f4f6);
