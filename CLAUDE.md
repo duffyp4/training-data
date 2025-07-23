@@ -56,4 +56,6 @@ The system requires a `.env` file with:
 Daily files contain YAML front matter with structured metrics plus human-readable Markdown sections covering sleep, wellness, and detailed workout analysis with training effects, running dynamics, and power zones.
 
 ### Recent Changes
+**2025-07-23**: Added daily wellness collection to main workflow. The `garmin_scraper.py` now automatically collects sleep and wellness data (steps, body battery, resting HR) for days without workouts, creating daily files with comprehensive metrics even on rest days.
+
 **2025-07-22**: Fixed AI agent data access issue by updating `generate_index.py` to maintain `data/index.json`. Previously, AI agents could only see training data through July 7th despite having current data through July 21st, because the JSON index was stale. Now both human-readable `index.md` and machine-readable `data/index.json` are kept in sync with all available training files.

@@ -20,6 +20,8 @@ try:
     from fitparse import FitFile
     import requests
     from dateutil import tz
+    from dotenv import load_dotenv
+    load_dotenv()
 except ImportError as e:
     print(f"Missing required dependency: {e}")
     print("Please install requirements: pip install -r requirements.txt")
@@ -1111,6 +1113,30 @@ class GarminScraper:
         logger.info(f"Processed {len(processed_activities)} activities total")
         return processed_activities
 
+    def parse_duration_to_minutes(self, duration_str: Optional[str]) -> Optional[int]:
+        """Convert duration string like '7h 30m' to total minutes"""
+        if not duration_str:
+            return None
+        
+        try:
+            total_minutes = 0
+            # Handle formats like "7h 30m" or "450m" or "7h"
+            if 'h' in duration_str:
+                parts = duration_str.split('h')
+                hours = int(parts[0].strip())
+                total_minutes += hours * 60
+                
+                if len(parts) > 1 and 'm' in parts[1]:
+                    minutes = int(parts[1].replace('m', '').strip())
+                    total_minutes += minutes
+            elif 'm' in duration_str:
+                minutes = int(duration_str.replace('m', '').strip())
+                total_minutes = minutes
+            
+            return total_minutes if total_minutes > 0 else None
+        except Exception:
+            return None
+
     def save_activities(self, activities: List[Dict]):
         """Save processed activities to JSON file"""
         try:
@@ -1119,6 +1145,86 @@ class GarminScraper:
             logger.info(f"Saved {len(activities)} activities to {self.activities_output}")
         except Exception as e:
             logger.error(f"Error saving activities: {e}")
+    
+    def collect_daily_wellness(self):
+        """Collect daily wellness data for today if no workout file exists"""
+        from garmin_to_daily_files import GarminToDailyFiles
+        
+        if not self.authenticate():
+            logger.error("Failed to authenticate for daily wellness collection")
+            return
+        
+        today = datetime.now().strftime('%Y-%m-%d')
+        today_obj = datetime.strptime(today, '%Y-%m-%d')
+        
+        # Check if we already have a file for today
+        file_path = Path(f"data/{today_obj.year}/{today_obj.month:02d}/{today_obj.day:02d}.md")
+        
+        if file_path.exists():
+            logger.info(f"Daily file already exists for {today}, skipping wellness collection")
+            return
+        
+        logger.info(f"Collecting daily wellness data for {today}")
+        
+        # Create daily entry structure
+        day_entry = {
+            "date": today,
+            "schema": 2,
+            "sleep_metrics": {},
+            "daily_metrics": {},
+            "workout_metrics": []
+        }
+        
+        # Get sleep and wellness data
+        sleep_data = self.get_sleep_data(today)
+        wellness_data = self.get_wellness_data(today)
+        
+        has_data = False
+        
+        if sleep_data:
+            day_entry["sleep_metrics"] = {
+                "sleep_minutes": self.parse_duration_to_minutes(sleep_data.get("totalSleep")),
+                "deep_minutes": self.parse_duration_to_minutes(sleep_data.get("deepSleep")),
+                "light_minutes": self.parse_duration_to_minutes(sleep_data.get("lightSleep")),
+                "rem_minutes": self.parse_duration_to_minutes(sleep_data.get("remSleep")),
+                "awake_minutes": self.parse_duration_to_minutes(sleep_data.get("awakeTime")),
+                "sleep_score": sleep_data.get("sleepScore"),
+                "hrv_night_avg": None  # Would need additional API call
+            }
+            has_data = True
+            logger.info(f"Collected sleep data for {today}")
+        
+        if wellness_data:
+            day_entry["daily_metrics"] = {
+                "body_battery": wellness_data.get("bodyBattery", {}),
+                "steps": wellness_data.get("dailySteps"),
+                "resting_hr": wellness_data.get("restingHeartRate"),
+                "lactate_threshold": wellness_data.get("lactateThreshold", {})
+            }
+            has_data = True
+            logger.info(f"Collected wellness data for {today}")
+        
+        # Only create file if we have some data
+        if has_data:
+            try:
+                converter = GarminToDailyFiles()
+                
+                # Create directory structure
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+                
+                # Generate file content
+                file_content = converter.generate_daily_file_content(day_entry)
+                
+                # Write the file
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(file_content)
+                
+                logger.info(f"✅ Created daily wellness file: {file_path}")
+                
+            except Exception as e:
+                logger.error(f"Error creating daily wellness file for {today}: {e}")
+        else:
+            logger.info(f"No wellness data available for {today}")
 
 def main():
     """Main entry point"""
@@ -1137,6 +1243,11 @@ def main():
             logger.info("No new activities to process")
             # Still create empty activities.json for consistency
             scraper.save_activities([])
+        
+        # Collect daily wellness data for today (going forward)
+        # Only do this for scheduled runs, not specific activity processing
+        if not specific_activity_id:
+            scraper.collect_daily_wellness()
             
     except KeyboardInterrupt:
         logger.info("Process interrupted by user")

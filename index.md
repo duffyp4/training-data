@@ -6,33 +6,35 @@ This repository contains comprehensive training data with detailed per-split met
 
 - **[Tuesday, July 22, 2025](data/2025/07/22.md)** - 1 workout, 3.5 miles
 - **[Monday, July 21, 2025](data/2025/07/21.md)** - 1 workout, 3.3 miles
+- **[Sunday, July 20, 2025](data/2025/07/20.md)** - 0 workouts, 0 miles
 - **[Saturday, July 19, 2025](data/2025/07/19.md)** - 1 workout, 10.0 miles
 - **[Friday, July 18, 2025](data/2025/07/18.md)** - 1 workout, 6.0 miles
 - **[Thursday, July 17, 2025](data/2025/07/17.md)** - 1 workout, 4.0 miles
 - **[Wednesday, July 16, 2025](data/2025/07/16.md)** - 1 workout, 4.5 miles
 - **[Tuesday, July 15, 2025](data/2025/07/15.md)** - 1 workout, 2.5 miles
+- **[Monday, July 14, 2025](data/2025/07/14.md)** - 0 workouts, 0 miles
 - **[Sunday, July 13, 2025](data/2025/07/13.md)** - 1 workout, 6.2 miles
 - **[Saturday, July 12, 2025](data/2025/07/12.md)** - 1 workout, 0.4 miles
 - **[Friday, July 11, 2025](data/2025/07/11.md)** - 1 workout, 4.0 miles
 - **[Thursday, July 10, 2025](data/2025/07/10.md)** - 1 workout, 3.7 miles
 - **[Wednesday, July 09, 2025](data/2025/07/09.md)** - 1 workout, 3.9 miles
 - **[Tuesday, July 08, 2025](data/2025/07/08.md)** - 1 workout, 2.0 miles
-- **[Monday, July 07, 2025](data/2025/07/07.md)** - 1 workout, 8.0 miles
-- **[Sunday, July 06, 2025](data/2025/07/06.md)** - 1 workout, 2.0 miles
 
 ## Complete Data Index
 
-**All 56 daily files:** 
+**All 60 daily files:** 
 
 ### July 2025
 
 - **[Tuesday, July 22, 2025](data/2025/07/22.md)** - 1 workout, 3.5 miles
 - **[Monday, July 21, 2025](data/2025/07/21.md)** - 1 workout, 3.3 miles
+- **[Sunday, July 20, 2025](data/2025/07/20.md)** - 0 workouts, 0 miles
 - **[Saturday, July 19, 2025](data/2025/07/19.md)** - 1 workout, 10.0 miles
 - **[Friday, July 18, 2025](data/2025/07/18.md)** - 1 workout, 6.0 miles
 - **[Thursday, July 17, 2025](data/2025/07/17.md)** - 1 workout, 4.0 miles
 - **[Wednesday, July 16, 2025](data/2025/07/16.md)** - 1 workout, 4.5 miles
 - **[Tuesday, July 15, 2025](data/2025/07/15.md)** - 1 workout, 2.5 miles
+- **[Monday, July 14, 2025](data/2025/07/14.md)** - 0 workouts, 0 miles
 - **[Sunday, July 13, 2025](data/2025/07/13.md)** - 1 workout, 6.2 miles
 - **[Saturday, July 12, 2025](data/2025/07/12.md)** - 1 workout, 0.4 miles
 - **[Friday, July 11, 2025](data/2025/07/11.md)** - 1 workout, 4.0 miles
@@ -41,7 +43,9 @@ This repository contains comprehensive training data with detailed per-split met
 - **[Tuesday, July 08, 2025](data/2025/07/08.md)** - 1 workout, 2.0 miles
 - **[Monday, July 07, 2025](data/2025/07/07.md)** - 1 workout, 8.0 miles
 - **[Sunday, July 06, 2025](data/2025/07/06.md)** - 1 workout, 2.0 miles
+- **[Saturday, July 05, 2025](data/2025/07/05.md)** - 0 workouts, 0 miles
 - **[Friday, July 04, 2025](data/2025/07/04.md)** - 1 workout, 3.9 miles
+- **[Thursday, July 03, 2025](data/2025/07/03.md)** - 0 workouts, 0 miles
 - **[Wednesday, July 02, 2025](data/2025/07/02.md)** - 1 workout, 2.8 miles
 - **[Tuesday, July 01, 2025](data/2025/07/01.md)** - 2 workouts, 3.3 miles
 
@@ -97,7 +101,7 @@ This repository contains comprehensive training data with detailed per-split met
 
 ## Summary
 
-- **Total Files:** 56 daily training files
+- **Total Files:** 60 daily training files
 - **Date Range:** Saturday, March 08, 2025 to Tuesday, July 22, 2025
 - **Total Workouts:** 58
 - **Total Distance:** 197.8 miles
