@@ -743,6 +743,11 @@ h1 {
     background: linear-gradient(145deg, #fef2f2, #fecaca);
 }
 
+.training-card.completed-week {
+    border-left-color: #10b981;
+    background: linear-gradient(145deg, #ecfdf5, #d1fae5);
+}
+
 .training-card.current-week {
     border-left-color: #f59e0b;
     background: linear-gradient(145deg, #fffbeb, #fef3c7);
@@ -799,4 +804,37 @@ h1 {
     background: linear-gradient(90deg, #10b981, #059669);
     border-radius: 4px;
     transition: width 0.5s ease;
+}
+
+/* New weekly card styles */
+.week-dates {
+    font-size: 0.9em;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+.week-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 16px;
+}
+
+.stat-item {
+    text-align: center;
+    flex: 1;
+}
+
+.stat-item .stat-number {
+    display: block;
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 4px;
+}
+
+.stat-item .stat-label {
+    font-size: 0.8em;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 } 

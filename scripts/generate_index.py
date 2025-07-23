@@ -174,66 +174,65 @@ def generate_calendar_widget(daily_files: List[Dict]) -> str:
     
     return '\n'.join(html)
 
-def generate_nike_training_cards(daily_files: List[Dict]) -> str:
-    """Generate Nike training plan weekly progress cards"""
+def generate_weekly_training_cards(daily_files: List[Dict]) -> str:
+    """Generate weekly training summary cards"""
     try:
-        # Load Nike training plan
-        with open('nike_training_plan.json', 'r') as f:
-            plan = json.load(f)
-        
-        start_date = datetime.strptime(plan['start_date'], '%Y-%m-%d')
+        # Start from June 8, 2025 (Week 1)
+        start_date = datetime(2025, 6, 8)  # Sunday, June 8th
         
         html = ['''
 <div class="training-plan">
-    <h2>🏃‍♂️ Nike Marathon Training Progress</h2>
+    <h2>🏃‍♂️ Weekly Training Summary</h2>
     <div class="training-cards">''']
         
-        for week_data in plan['weeks']:
-            week_num = int(week_data['week'].split()[1])  # Extract week number
-            week_start = start_date + timedelta(weeks=week_num-1)
-            week_end = week_start + timedelta(days=6)
-            
-            # Only show weeks that have started (up to current week)
-            if week_start > datetime.now():
-                break  # Stop showing future weeks that haven't started yet
+        week_num = 1
+        current_week_start = start_date
+        
+        while current_week_start <= datetime.now():
+            week_end = current_week_start + timedelta(days=6)
             
             # Calculate actual miles for this week
             week_files = [f for f in daily_files 
-                         if week_start.strftime('%Y-%m-%d') <= f['date'] <= week_end.strftime('%Y-%m-%d')]
+                         if current_week_start.strftime('%Y-%m-%d') <= f['date'] <= week_end.strftime('%Y-%m-%d')]
             
             actual_miles = sum(f['total_distance'] for f in week_files)
-            target_miles = week_data['target_miles']
+            workout_count = sum(f['workout_count'] for f in week_files)
             
-            # Determine status - no more future weeks shown
+            # Determine if this is current week or completed
             if week_end < datetime.now():
-                # Completed week
-                if actual_miles >= target_miles:
-                    status_class = 'hit-target'
-                    status_icon = '✅'
-                else:
-                    status_class = 'missed-target'
-                    status_icon = '❌'
+                status_class = 'completed-week'
+                status_icon = '✅'
             else:
-                # Current week in progress
                 status_class = 'current-week'
                 status_icon = '🔄'
+            
+            # Format date range
+            week_start_str = current_week_start.strftime('%b %d')
+            week_end_str = week_end.strftime('%b %d')
             
             html.append(f'''
         <div class="training-card {status_class}">
             <div class="training-card-header">
-                <h4>{week_data['week']}</h4>
+                <h4>Week {week_num}</h4>
                 <span class="status-icon">{status_icon}</span>
             </div>
             <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">{actual_miles:.1f} miles</span>
-                    <span class="target-miles">Target: {target_miles} miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: {min(100, (actual_miles/target_miles)*100 if target_miles > 0 else 0):.1f}%"></div>
+                <div class="week-dates">{week_start_str} - {week_end_str}</div>
+                <div class="week-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">{actual_miles:.1f}</span>
+                        <span class="stat-label">miles</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{workout_count}</span>
+                        <span class="stat-label">workouts</span>
+                    </div>
                 </div>
             </div>
         </div>''')
+            
+            week_num += 1
+            current_week_start += timedelta(weeks=1)
         
         html.append('''    </div>
 </div>''')
@@ -241,8 +240,8 @@ def generate_nike_training_cards(daily_files: List[Dict]) -> str:
         return '\n'.join(html)
         
     except Exception as e:
-        logger.error(f"Error generating Nike training cards: {e}")
-        return '<div class="training-plan"><h2>🏃‍♂️ Nike Training Plan</h2><p>Error loading training plan data.</p></div>'
+        logger.error(f"Error generating weekly training cards: {e}")
+        return '<div class="training-plan"><h2>🏃‍♂️ Weekly Training</h2><p>Error loading training data.</p></div>'
 
 def generate_enhanced_index():
     """Generate the new enhanced index.md"""
@@ -281,8 +280,8 @@ def generate_enhanced_index():
     content.append(generate_calendar_widget(daily_files))
     content.append('')
     
-    # Add Nike Training Cards
-    content.append(generate_nike_training_cards(daily_files))
+    # Add Weekly Training Cards
+    content.append(generate_weekly_training_cards(daily_files))
     content.append('')
     
     # Add JavaScript for calendar functionality

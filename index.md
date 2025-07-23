@@ -174,149 +174,145 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
 
 
 <div class="training-plan">
-    <h2>🏃‍♂️ Nike Marathon Training Progress</h2>
+    <h2>🏃‍♂️ Weekly Training Summary</h2>
     <div class="training-cards">
 
-        <div class="training-card missed-target">
+        <div class="training-card completed-week">
             <div class="training-card-header">
-                <h4>Week 1 (18 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">5.6 miles</span>
-                    <span class="target-miles">Target: 25 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 22.2%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 2 (17 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">12.1 miles</span>
-                    <span class="target-miles">Target: 27 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 44.7%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 3 (16 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">14.3 miles</span>
-                    <span class="target-miles">Target: 29 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 49.4%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 4 (15 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">11.0 miles</span>
-                    <span class="target-miles">Target: 23 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 48.0%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 5 (14 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">17.8 miles</span>
-                    <span class="target-miles">Target: 31 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 57.3%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 6 (13 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">13.6 miles</span>
-                    <span class="target-miles">Target: 33 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 41.1%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card missed-target">
-            <div class="training-card-header">
-                <h4>Week 7 (12 weeks to go)</h4>
-                <span class="status-icon">❌</span>
-            </div>
-            <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">24.1 miles</span>
-                    <span class="target-miles">Target: 35 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 68.7%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="training-card hit-target">
-            <div class="training-card-header">
-                <h4>Week 8 (11 weeks to go)</h4>
+                <h4>Week 1</h4>
                 <span class="status-icon">✅</span>
             </div>
             <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">33.2 miles</span>
-                    <span class="target-miles">Target: 27 miles</span>
+                <div class="week-dates">Jun 08 - Jun 14</div>
+                <div class="week-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">14.3</span>
+                        <span class="stat-label">miles</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">5</span>
+                        <span class="stat-label">workouts</span>
+                    </div>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 100.0%"></div>
+            </div>
+        </div>
+
+        <div class="training-card completed-week">
+            <div class="training-card-header">
+                <h4>Week 2</h4>
+                <span class="status-icon">✅</span>
+            </div>
+            <div class="training-card-content">
+                <div class="week-dates">Jun 15 - Jun 21</div>
+                <div class="week-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">11.0</span>
+                        <span class="stat-label">miles</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">3</span>
+                        <span class="stat-label">workouts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card completed-week">
+            <div class="training-card-header">
+                <h4>Week 3</h4>
+                <span class="status-icon">✅</span>
+            </div>
+            <div class="training-card-content">
+                <div class="week-dates">Jun 22 - Jun 28</div>
+                <div class="week-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">17.8</span>
+                        <span class="stat-label">miles</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">6</span>
+                        <span class="stat-label">workouts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card completed-week">
+            <div class="training-card-header">
+                <h4>Week 4</h4>
+                <span class="status-icon">✅</span>
+            </div>
+            <div class="training-card-content">
+                <div class="week-dates">Jun 29 - Jul 05</div>
+                <div class="week-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">13.6</span>
+                        <span class="stat-label">miles</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">5</span>
+                        <span class="stat-label">workouts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card completed-week">
+            <div class="training-card-header">
+                <h4>Week 5</h4>
+                <span class="status-icon">✅</span>
+            </div>
+            <div class="training-card-content">
+                <div class="week-dates">Jul 06 - Jul 12</div>
+                <div class="week-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">24.1</span>
+                        <span class="stat-label">miles</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">7</span>
+                        <span class="stat-label">workouts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card completed-week">
+            <div class="training-card-header">
+                <h4>Week 6</h4>
+                <span class="status-icon">✅</span>
+            </div>
+            <div class="training-card-content">
+                <div class="week-dates">Jul 13 - Jul 19</div>
+                <div class="week-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">33.2</span>
+                        <span class="stat-label">miles</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">6</span>
+                        <span class="stat-label">workouts</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="training-card current-week">
             <div class="training-card-header">
-                <h4>Week 9 (10 weeks to go)</h4>
+                <h4>Week 7</h4>
                 <span class="status-icon">🔄</span>
             </div>
             <div class="training-card-content">
-                <div class="mileage-comparison">
-                    <span class="actual-miles">6.8 miles</span>
-                    <span class="target-miles">Target: 37 miles</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 18.2%"></div>
+                <div class="week-dates">Jul 20 - Jul 26</div>
+                <div class="week-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">6.8</span>
+                        <span class="stat-label">miles</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">2</span>
+                        <span class="stat-label">workouts</span>
+                    </div>
                 </div>
             </div>
         </div>
