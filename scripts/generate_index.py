@@ -153,32 +153,17 @@ def generate_index():
     # Write data/index.json for AI agent consumption
     # Added 2025-07-22: AI agents were unable to discover recent training data 
     # because index.json was stale (only went to July 7th vs July 21st actual data)
-    # Updated 2025-07-23: Copy raw .md files for AI access (GitHub Pages converts to HTML)
+    # Updated 2025-07-23: Use GitHub raw API URLs for AI access (GitHub Pages converts to HTML)
     json_data = []
-    raw_dir = Path('raw')
-    raw_dir.mkdir(exist_ok=True)
     
     for file_data in daily_files:
-        # Copy original .md file to raw/ directory for AI access
-        original_path = Path(file_data['file_path'])
-        if original_path.exists():
-            # Create year/month structure in raw/
-            raw_file_path = raw_dir / original_path.relative_to(Path('data'))
-            raw_file_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            # Copy the file
-            import shutil
-            shutil.copy2(original_path, raw_file_path)
-            
-            # Point JSON to raw file
-            raw_path = str(raw_file_path).replace('\\', '/')
-        else:
-            # Fallback to original path if file doesn't exist
-            raw_path = file_data['file_path'].replace('\\', '/')
-            
+        # Convert local path to GitHub raw API URL
+        local_path = file_data['file_path'].replace('\\', '/')
+        github_raw_url = f"https://raw.githubusercontent.com/duffyp4/training-data/main/{local_path}"
+        
         json_data.append({
             "date": file_data['date'],
-            "path": raw_path
+            "path": github_raw_url
         })
     
     data_dir = Path('data')
