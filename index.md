@@ -9,15 +9,15 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
     <h2>📊 July 2025 Quick Stats</h2>
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-number">21</div>
+            <div class="stat-number">22</div>
             <div class="stat-label">Total Workouts</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">87.4</div>
+            <div class="stat-number">92.3</div>
             <div class="stat-label">Miles</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">16.6</div>
+            <div class="stat-number">17.8</div>
             <div class="stat-label">Hours</div>
         </div>
         <div class="stat-card">
@@ -148,10 +148,11 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
         </div>
         <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/26.md'">
             <span class="day-number">26</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/27.md'">
             <span class="day-number">27</span>
+            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
         <div class="calendar-day">
             <span class="day-number">28</span>
@@ -309,11 +310,31 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
                 <div class="week-dates">Jul 20 - Jul 26</div>
                 <div class="week-stats">
                     <div class="stat-item">
-                        <span class="stat-number">20.1</span>
+                        <span class="stat-number">25.0</span>
                         <span class="stat-label">miles</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">4</span>
+                        <span class="stat-number">5</span>
+                        <span class="stat-label">workouts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card current-week">
+            <div class="training-card-header">
+                <h4>Week 8</h4>
+                <span class="status-icon">🔄</span>
+            </div>
+            <div class="training-card-content">
+                <div class="week-dates">Jul 27 - Aug 02</div>
+                <div class="week-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">0.0</span>
+                        <span class="stat-label">miles</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">0</span>
                         <span class="stat-label">workouts</span>
                     </div>
                 </div>
