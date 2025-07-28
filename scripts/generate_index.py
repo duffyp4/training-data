@@ -113,7 +113,8 @@ def generate_calendar_widget(daily_files: List[Dict]) -> str:
     month = now.month
     month_name = now.strftime('%B %Y')
     
-    # Get calendar for current month
+    # Get calendar for current month (Sunday first)
+    calendar.setfirstweekday(calendar.SUNDAY)
     cal = calendar.monthcalendar(year, month)
     
     html = [f'''

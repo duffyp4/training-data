@@ -46,6 +46,7 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
         <div class="calendar-day-header">Sat</div>
 
         <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
         <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/01.html'">
             <span class="day-number">1</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
@@ -167,7 +168,6 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
         <div class="calendar-day">
             <span class="day-number">31</span>
         </div>
-        <div class="calendar-day empty"></div>
         <div class="calendar-day empty"></div>
         <div class="calendar-day empty"></div>
     </div>
