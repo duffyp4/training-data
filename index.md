@@ -46,95 +46,95 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
         <div class="calendar-day-header">Sat</div>
 
         <div class="calendar-day empty"></div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/01.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/01.html'">
             <span class="day-number">1</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/02.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/02.html'">
             <span class="day-number">2</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/03.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/03.html'">
             <span class="day-number">3</span>
             <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/04.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/04.html'">
             <span class="day-number">4</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/05.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/05.html'">
             <span class="day-number">5</span>
             <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/06.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/06.html'">
             <span class="day-number">6</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/07.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/07.html'">
             <span class="day-number">7</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/08.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/08.html'">
             <span class="day-number">8</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/09.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/09.html'">
             <span class="day-number">9</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/10.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/10.html'">
             <span class="day-number">10</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/11.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/11.html'">
             <span class="day-number">11</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/12.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/12.html'">
             <span class="day-number">12</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/13.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/13.html'">
             <span class="day-number">13</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/14.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/14.html'">
             <span class="day-number">14</span>
             <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/15.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/15.html'">
             <span class="day-number">15</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/16.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/16.html'">
             <span class="day-number">16</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/17.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/17.html'">
             <span class="day-number">17</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/18.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/18.html'">
             <span class="day-number">18</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/19.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/19.html'">
             <span class="day-number">19</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/20.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/20.html'">
             <span class="day-number">20</span>
             <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/21.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/21.html'">
             <span class="day-number">21</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/22.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/22.html'">
             <span class="day-number">22</span>
             <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/23.md'">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/07/23.html'">
             <span class="day-number">23</span>
             <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
@@ -174,21 +174,21 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
 
 
 <div class="training-plan">
-    <h2>🏃‍♂️ Weekly Training Summary</h2>
+    <h2>🏃‍♂️ Weekly Training vs Hal Higdon Novice 2</h2>
     <div class="training-cards">
 
-        <div class="training-card completed-week">
+        <div class="training-card missed-target">
             <div class="training-card-header">
                 <h4>Week 1</h4>
-                <span class="status-icon">✅</span>
+                <span class="status-icon">❌</span>
             </div>
             <div class="training-card-content">
                 <div class="week-dates">Jun 08 - Jun 14</div>
+                <div class="mileage-comparison">
+                    <span class="actual-miles">14.3 miles</span>
+                    <span class="target-miles">Target: 19 miles</span>
+                </div>
                 <div class="week-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">14.3</span>
-                        <span class="stat-label">miles</span>
-                    </div>
                     <div class="stat-item">
                         <span class="stat-number">5</span>
                         <span class="stat-label">workouts</span>
@@ -197,18 +197,18 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
         </div>
 
-        <div class="training-card completed-week">
+        <div class="training-card missed-target">
             <div class="training-card-header">
                 <h4>Week 2</h4>
-                <span class="status-icon">✅</span>
+                <span class="status-icon">❌</span>
             </div>
             <div class="training-card-content">
                 <div class="week-dates">Jun 15 - Jun 21</div>
+                <div class="mileage-comparison">
+                    <span class="actual-miles">11.0 miles</span>
+                    <span class="target-miles">Target: 20 miles</span>
+                </div>
                 <div class="week-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">11.0</span>
-                        <span class="stat-label">miles</span>
-                    </div>
                     <div class="stat-item">
                         <span class="stat-number">3</span>
                         <span class="stat-label">workouts</span>
@@ -217,18 +217,18 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
         </div>
 
-        <div class="training-card completed-week">
+        <div class="training-card hit-target">
             <div class="training-card-header">
                 <h4>Week 3</h4>
                 <span class="status-icon">✅</span>
             </div>
             <div class="training-card-content">
                 <div class="week-dates">Jun 22 - Jun 28</div>
+                <div class="mileage-comparison">
+                    <span class="actual-miles">17.8 miles</span>
+                    <span class="target-miles">Target: 17 miles</span>
+                </div>
                 <div class="week-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">17.8</span>
-                        <span class="stat-label">miles</span>
-                    </div>
                     <div class="stat-item">
                         <span class="stat-number">6</span>
                         <span class="stat-label">workouts</span>
@@ -237,18 +237,18 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
         </div>
 
-        <div class="training-card completed-week">
+        <div class="training-card missed-target">
             <div class="training-card-header">
                 <h4>Week 4</h4>
-                <span class="status-icon">✅</span>
+                <span class="status-icon">❌</span>
             </div>
             <div class="training-card-content">
                 <div class="week-dates">Jun 29 - Jul 05</div>
+                <div class="mileage-comparison">
+                    <span class="actual-miles">13.6 miles</span>
+                    <span class="target-miles">Target: 23 miles</span>
+                </div>
                 <div class="week-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">13.6</span>
-                        <span class="stat-label">miles</span>
-                    </div>
                     <div class="stat-item">
                         <span class="stat-number">5</span>
                         <span class="stat-label">workouts</span>
@@ -257,18 +257,18 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
         </div>
 
-        <div class="training-card completed-week">
+        <div class="training-card hit-target">
             <div class="training-card-header">
                 <h4>Week 5</h4>
                 <span class="status-icon">✅</span>
             </div>
             <div class="training-card-content">
                 <div class="week-dates">Jul 06 - Jul 12</div>
+                <div class="mileage-comparison">
+                    <span class="actual-miles">24.1 miles</span>
+                    <span class="target-miles">Target: 24 miles</span>
+                </div>
                 <div class="week-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">24.1</span>
-                        <span class="stat-label">miles</span>
-                    </div>
                     <div class="stat-item">
                         <span class="stat-number">7</span>
                         <span class="stat-label">workouts</span>
@@ -277,18 +277,18 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
         </div>
 
-        <div class="training-card completed-week">
+        <div class="training-card hit-target">
             <div class="training-card-header">
                 <h4>Week 6</h4>
                 <span class="status-icon">✅</span>
             </div>
             <div class="training-card-content">
                 <div class="week-dates">Jul 13 - Jul 19</div>
+                <div class="mileage-comparison">
+                    <span class="actual-miles">33.2 miles</span>
+                    <span class="target-miles">Target: 21 miles</span>
+                </div>
                 <div class="week-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">33.2</span>
-                        <span class="stat-label">miles</span>
-                    </div>
                     <div class="stat-item">
                         <span class="stat-number">6</span>
                         <span class="stat-label">workouts</span>
@@ -297,20 +297,40 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             </div>
         </div>
 
-        <div class="training-card current-week">
+        <div class="training-card missed-target">
             <div class="training-card-header">
                 <h4>Week 7</h4>
-                <span class="status-icon">🔄</span>
+                <span class="status-icon">❌</span>
             </div>
             <div class="training-card-content">
                 <div class="week-dates">Jul 20 - Jul 26</div>
+                <div class="mileage-comparison">
+                    <span class="actual-miles">6.8 miles</span>
+                    <span class="target-miles">Target: 29 miles</span>
+                </div>
                 <div class="week-stats">
                     <div class="stat-item">
-                        <span class="stat-number">6.8</span>
-                        <span class="stat-label">miles</span>
-                    </div>
-                    <div class="stat-item">
                         <span class="stat-number">2</span>
+                        <span class="stat-label">workouts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card current-week">
+            <div class="training-card-header">
+                <h4>Week 8</h4>
+                <span class="status-icon">🔄</span>
+            </div>
+            <div class="training-card-content">
+                <div class="week-dates">Jul 27 - Aug 02</div>
+                <div class="mileage-comparison">
+                    <span class="actual-miles">0.0 miles</span>
+                    <span class="target-miles">Target: 30 miles</span>
+                </div>
+                <div class="week-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">0</span>
                         <span class="stat-label">workouts</span>
                     </div>
                 </div>

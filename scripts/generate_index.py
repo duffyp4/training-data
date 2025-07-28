@@ -154,7 +154,8 @@ def generate_calendar_widget(daily_files: List[Dict]) -> str:
                         dots.append('<span class="dot wellness-dot">🔵</span>')
                     
                     dots_html = ''.join(dots)
-                    file_path = file_data['file_path'].replace('\\', '/')
+                    # Convert .md path to HTML path for GitHub Pages
+                    file_path = file_data['file_path'].replace('\\', '/').replace('.md', '.html')
                     
                     html.append(f'        <div class="calendar-day has-data" onclick="window.location.href=\'{file_path}\'">')
                     html.append(f'            <span class="day-number">{day}</span>')
@@ -175,20 +176,24 @@ def generate_calendar_widget(daily_files: List[Dict]) -> str:
     return '\n'.join(html)
 
 def generate_weekly_training_cards(daily_files: List[Dict]) -> str:
-    """Generate weekly training summary cards"""
+    """Generate weekly training summary cards with Hal Higdon targets"""
     try:
+        # Load Hal Higdon training plan
+        with open('nike_training_plan.json', 'r') as f:
+            plan = json.load(f)
+        
         # Start from June 8, 2025 (Week 1)
         start_date = datetime(2025, 6, 8)  # Sunday, June 8th
         
         html = ['''
 <div class="training-plan">
-    <h2>🏃‍♂️ Weekly Training Summary</h2>
+    <h2>🏃‍♂️ Weekly Training vs Hal Higdon Novice 2</h2>
     <div class="training-cards">''']
         
         week_num = 1
         current_week_start = start_date
         
-        while current_week_start <= datetime.now():
+        while current_week_start <= datetime.now() and week_num <= len(plan['weeks']):
             week_end = current_week_start + timedelta(days=6)
             
             # Calculate actual miles for this week
@@ -198,11 +203,20 @@ def generate_weekly_training_cards(daily_files: List[Dict]) -> str:
             actual_miles = sum(f['total_distance'] for f in week_files)
             workout_count = sum(f['workout_count'] for f in week_files)
             
-            # Determine if this is current week or completed
+            # Get target from Hal Higdon plan
+            target_miles = plan['weeks'][week_num-1]['target_miles']
+            
+            # Determine status based on target achievement and week completion
             if week_end < datetime.now():
-                status_class = 'completed-week'
-                status_icon = '✅'
+                # Completed week - check if target was hit
+                if actual_miles >= target_miles:
+                    status_class = 'hit-target'
+                    status_icon = '✅'
+                else:
+                    status_class = 'missed-target'
+                    status_icon = '❌'
             else:
+                # Current week in progress
                 status_class = 'current-week'
                 status_icon = '🔄'
             
@@ -218,11 +232,11 @@ def generate_weekly_training_cards(daily_files: List[Dict]) -> str:
             </div>
             <div class="training-card-content">
                 <div class="week-dates">{week_start_str} - {week_end_str}</div>
+                <div class="mileage-comparison">
+                    <span class="actual-miles">{actual_miles:.1f} miles</span>
+                    <span class="target-miles">Target: {target_miles} miles</span>
+                </div>
                 <div class="week-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">{actual_miles:.1f}</span>
-                        <span class="stat-label">miles</span>
-                    </div>
                     <div class="stat-item">
                         <span class="stat-number">{workout_count}</span>
                         <span class="stat-label">workouts</span>
