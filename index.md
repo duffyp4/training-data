@@ -203,7 +203,7 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             <div class="training-card-content">
                 <div class="week-dates">Jun 15 - Jun 21</div>
                 <div class="mileage-comparison">
-                    <span class="actual-miles">11.1 miles</span>
+                    <span class="actual-miles">11.0 miles</span>
                     <span class="target-miles">Target: 20 miles</span>
                 </div>
                 <div class="week-stats">
@@ -243,7 +243,7 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             <div class="training-card-content">
                 <div class="week-dates">Jun 29 - Jul 05</div>
                 <div class="mileage-comparison">
-                    <span class="actual-miles">13.5 miles</span>
+                    <span class="actual-miles">13.6 miles</span>
                     <span class="target-miles">Target: 23 miles</span>
                 </div>
                 <div class="week-stats">
@@ -263,7 +263,7 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             <div class="training-card-content">
                 <div class="week-dates">Jul 06 - Jul 12</div>
                 <div class="mileage-comparison">
-                    <span class="actual-miles">24.0 miles</span>
+                    <span class="actual-miles">24.1 miles</span>
                     <span class="target-miles">Target: 24 miles</span>
                 </div>
                 <div class="week-stats">

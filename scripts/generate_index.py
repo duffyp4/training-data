@@ -331,24 +331,21 @@ function changeMonth(delta) {
     with open('index.md', 'w', encoding='utf-8') as f:
         f.write(index_content)
     
-    # Preserve data/index.json for AI agent consumption (unchanged)
-    json_data = []
-    daily_files_for_json = sorted(daily_files, key=lambda x: x['date'], reverse=True)
+    # Create data/index.txt for AI agent consumption
+    txt_data = []
+    daily_files_for_txt = sorted(daily_files, key=lambda x: x['date'], reverse=True)
     
-    for file_data in daily_files_for_json:
+    for file_data in daily_files_for_txt:
         local_path = file_data['file_path'].replace('\\', '/')
         github_raw_url = f"https://raw.githubusercontent.com/duffyp4/training-data/main/{local_path}"
         
-        json_data.append({
-            "date": file_data['date'],
-            "path": github_raw_url
-        })
+        txt_data.append(f"{file_data['date']}: {github_raw_url}")
     
     data_dir.mkdir(exist_ok=True)
-    with open(data_dir / 'index.json', 'w', encoding='utf-8') as f:
-        json.dump(json_data, f, indent=2)
+    with open(data_dir / 'index.txt', 'w', encoding='utf-8') as f:
+        f.write('\n'.join(txt_data))
     
-    logger.info("Generated enhanced index.md and preserved data/index.json")
+    logger.info("Generated enhanced index.md and created data/index.txt")
     return len(daily_files)
 
 def main():
