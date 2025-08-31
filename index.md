@@ -170,8 +170,9 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             <span class="day-number">30</span>
             <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/08/31.html'">
             <span class="day-number">31</span>
+            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
         <div class="calendar-day empty"></div>
         <div class="calendar-day empty"></div>
@@ -425,6 +426,26 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
                 <div class="week-stats">
                     <div class="stat-item">
                         <span class="stat-number">2</span>
+                        <span class="stat-label">workouts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="training-card current-week">
+            <div class="training-card-header">
+                <h4>Week 13</h4>
+                <span class="status-icon">🔄</span>
+            </div>
+            <div class="training-card-content">
+                <div class="week-dates">Aug 31 - Sep 06</div>
+                <div class="mileage-comparison">
+                    <span class="actual-miles">0.0 miles</span>
+                    <span class="target-miles">Target: 34 miles</span>
+                </div>
+                <div class="week-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">0</span>
                         <span class="stat-label">workouts</span>
                     </div>
                 </div>
