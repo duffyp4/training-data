@@ -9,19 +9,19 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
     <h2>📊 September 2025 Quick Stats</h2>
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-number">0</div>
+            <div class="stat-number">1</div>
             <div class="stat-label">Total Workouts</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">0.0</div>
+            <div class="stat-number">5.1</div>
             <div class="stat-label">Miles</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">0.0</div>
+            <div class="stat-number">0.9</div>
             <div class="stat-label">Hours</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">0</div>
+            <div class="stat-number">66</div>
             <div class="stat-label">Avg Sleep Score</div>
         </div>
     </div>
@@ -48,10 +48,11 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
         <div class="calendar-day empty"></div>
         <div class="calendar-day has-data" onclick="window.location.href='data/2025/09/01.html'">
             <span class="day-number">1</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/09/02.html'">
             <span class="day-number">2</span>
+            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
         <div class="calendar-day">
             <span class="day-number">3</span>
@@ -401,12 +402,12 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             <div class="training-card-content">
                 <div class="week-dates">Aug 31 - Sep 06</div>
                 <div class="mileage-comparison">
-                    <span class="actual-miles">8.5 miles</span>
+                    <span class="actual-miles">13.6 miles</span>
                     <span class="target-miles">Target: 34 miles</span>
                 </div>
                 <div class="week-stats">
                     <div class="stat-item">
-                        <span class="stat-number">1</span>
+                        <span class="stat-number">2</span>
                         <span class="stat-label">workouts</span>
                     </div>
                 </div>
