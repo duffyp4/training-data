@@ -1,3 +1,4 @@
+2025-10-28: https://raw.githubusercontent.com/duffyp4/training-data/main/data/2025/10/28.md
 2025-10-27: https://raw.githubusercontent.com/duffyp4/training-data/main/data/2025/10/27.md
 2025-10-26: https://raw.githubusercontent.com/duffyp4/training-data/main/data/2025/10/26.md
 2025-10-25: https://raw.githubusercontent.com/duffyp4/training-data/main/data/2025/10/25.md
