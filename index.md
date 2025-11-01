@@ -6,22 +6,22 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
 
 
 <div class="stats-dashboard">
-    <h2>📊 October 2025 Quick Stats</h2>
+    <h2>📊 November 2025 Quick Stats</h2>
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-number">7</div>
+            <div class="stat-number">0</div>
             <div class="stat-label">Total Workouts</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">48.6</div>
+            <div class="stat-number">0.0</div>
             <div class="stat-label">Miles</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">9.0</div>
+            <div class="stat-number">0.0</div>
             <div class="stat-label">Hours</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">74</div>
+            <div class="stat-number">0</div>
             <div class="stat-label">Avg Sleep Score</div>
         </div>
     </div>
@@ -33,7 +33,7 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
     <h2>📅 Calendar Navigator</h2>
     <div class="calendar-header">
         <button class="calendar-nav" onclick="changeMonth(-1)">‹</button>
-        <h3 id="calendar-month">October 2025</h3>
+        <h3 id="calendar-month">November 2025</h3>
         <button class="calendar-nav" onclick="changeMonth(1)">›</button>
     </div>
     <div class="calendar-grid">
@@ -48,130 +48,105 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
         <div class="calendar-day empty"></div>
         <div class="calendar-day empty"></div>
         <div class="calendar-day empty"></div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/01.html'">
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day has-data" onclick="window.location.href='data/2025/11/01.html'">
             <span class="day-number">1</span>
-            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
+            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/02.html'">
+        <div class="calendar-day">
             <span class="day-number">2</span>
-            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/03.html'">
+        <div class="calendar-day">
             <span class="day-number">3</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/04.html'">
+        <div class="calendar-day">
             <span class="day-number">4</span>
-            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/05.html'">
+        <div class="calendar-day">
             <span class="day-number">5</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/06.html'">
+        <div class="calendar-day">
             <span class="day-number">6</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/07.html'">
+        <div class="calendar-day">
             <span class="day-number">7</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/08.html'">
+        <div class="calendar-day">
             <span class="day-number">8</span>
-            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/09.html'">
+        <div class="calendar-day">
             <span class="day-number">9</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/10.html'">
+        <div class="calendar-day">
             <span class="day-number">10</span>
-            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/11.html'">
+        <div class="calendar-day">
             <span class="day-number">11</span>
-            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/12.html'">
+        <div class="calendar-day">
             <span class="day-number">12</span>
-            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/13.html'">
+        <div class="calendar-day">
             <span class="day-number">13</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/14.html'">
+        <div class="calendar-day">
             <span class="day-number">14</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/15.html'">
+        <div class="calendar-day">
             <span class="day-number">15</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/16.html'">
+        <div class="calendar-day">
             <span class="day-number">16</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/17.html'">
+        <div class="calendar-day">
             <span class="day-number">17</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/18.html'">
+        <div class="calendar-day">
             <span class="day-number">18</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/19.html'">
+        <div class="calendar-day">
             <span class="day-number">19</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/20.html'">
+        <div class="calendar-day">
             <span class="day-number">20</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/21.html'">
+        <div class="calendar-day">
             <span class="day-number">21</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/22.html'">
+        <div class="calendar-day">
             <span class="day-number">22</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/23.html'">
+        <div class="calendar-day">
             <span class="day-number">23</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/24.html'">
+        <div class="calendar-day">
             <span class="day-number">24</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/25.html'">
+        <div class="calendar-day">
             <span class="day-number">25</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/26.html'">
+        <div class="calendar-day">
             <span class="day-number">26</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/27.html'">
+        <div class="calendar-day">
             <span class="day-number">27</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/28.html'">
+        <div class="calendar-day">
             <span class="day-number">28</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/29.html'">
+        <div class="calendar-day">
             <span class="day-number">29</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/30.html'">
+        <div class="calendar-day">
             <span class="day-number">30</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day has-data" onclick="window.location.href='data/2025/10/31.html'">
-            <span class="day-number">31</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
-        </div>
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
         <div class="calendar-day empty"></div>
     </div>
     <div class="calendar-legend">
