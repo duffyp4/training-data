@@ -77,8 +77,9 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             <span class="day-number">7</span>
             <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2026/01/08.html'">
             <span class="day-number">8</span>
+            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
         <div class="calendar-day">
             <span class="day-number">9</span>
