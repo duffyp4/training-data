@@ -9,7 +9,7 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
     <h2>📊 January 2026 Quick Stats</h2>
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-number">2</div>
+            <div class="stat-number">3</div>
             <div class="stat-label">Total Workouts</div>
         </div>
         <div class="stat-card">
@@ -17,7 +17,7 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
             <div class="stat-label">Miles</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">1.1</div>
+            <div class="stat-number">3.1</div>
             <div class="stat-label">Hours</div>
         </div>
         <div class="stat-card">
@@ -159,10 +159,11 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
         </div>
         <div class="calendar-day has-data" onclick="window.location.href='data/2026/01/28.html'">
             <span class="day-number">28</span>
-            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
+            <div class="day-dots"><span class="dot workout-dot">🟢</span><span class="dot wellness-dot">🔵</span></div>
         </div>
-        <div class="calendar-day">
+        <div class="calendar-day has-data" onclick="window.location.href='data/2026/01/29.html'">
             <span class="day-number">29</span>
+            <div class="day-dots"><span class="dot wellness-dot">🔵</span></div>
         </div>
         <div class="calendar-day">
             <span class="day-number">30</span>
