@@ -6,7 +6,7 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
 
 
 <div class="stats-dashboard">
-    <h2>📊 August 2026 Quick Stats</h2>
+    <h2>📊 September 2026 Quick Stats</h2>
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-number">0</div>
@@ -33,7 +33,7 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
     <h2>📅 Calendar Navigator</h2>
     <div class="calendar-header">
         <button class="calendar-nav" onclick="changeMonth(-1)">‹</button>
-        <h3 id="calendar-month">August 2026</h3>
+        <h3 id="calendar-month">September 2026</h3>
         <button class="calendar-nav" onclick="changeMonth(1)">›</button>
     </div>
     <div class="calendar-grid">
@@ -45,10 +45,6 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
         <div class="calendar-day-header">Fri</div>
         <div class="calendar-day-header">Sat</div>
 
-        <div class="calendar-day empty"></div>
-        <div class="calendar-day empty"></div>
-        <div class="calendar-day empty"></div>
-        <div class="calendar-day empty"></div>
         <div class="calendar-day empty"></div>
         <div class="calendar-day empty"></div>
         <div class="calendar-day">
@@ -141,11 +137,6 @@ Comprehensive training data with detailed per-split metrics, workout data, and w
         <div class="calendar-day">
             <span class="day-number">30</span>
         </div>
-        <div class="calendar-day">
-            <span class="day-number">31</span>
-        </div>
-        <div class="calendar-day empty"></div>
-        <div class="calendar-day empty"></div>
         <div class="calendar-day empty"></div>
         <div class="calendar-day empty"></div>
         <div class="calendar-day empty"></div>
